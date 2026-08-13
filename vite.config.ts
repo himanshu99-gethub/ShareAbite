@@ -13,7 +13,7 @@ try {
 
 import { defineConfig, loadEnv } from "vite";
 import tsConfigPaths from "vite-tsconfig-paths";
-import { cloudflare } from "@cloudflare/vite-plugin";
+// Cloudflare plugin removed — deploying to Vercel instead
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
@@ -261,9 +261,7 @@ function authApiPlugin() {
   };
 }
 
-export default defineConfig(({ command, mode }) => {
-  const useCloudflare = command === "build";
-
+export default defineConfig(({ mode }) => {
   // Load VITE_ env vars and define them for SSR
   const env = loadEnv(mode, process.cwd(), "VITE_");
   const envDefine: Record<string, string> = {};
@@ -291,8 +289,12 @@ export default defineConfig(({ command, mode }) => {
       authApiPlugin(),
       devClientErrorLogger(),
       devServerFnErrorLogger(),
-      ...(useCloudflare ? [cloudflare({ viteEnvironment: { name: "ssr" } })] : []),
-      tanstackStart(),
+      tanstackStart({
+        // Deploy to Vercel using Nitro's vercel preset
+        server: {
+          preset: "vercel",
+        },
+      }),
       viteReact(),
       mode === "development" && componentTagger(),
     ].filter(Boolean),
