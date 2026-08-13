@@ -289,12 +289,7 @@ export default defineConfig(({ mode }) => {
       authApiPlugin(),
       devClientErrorLogger(),
       devServerFnErrorLogger(),
-      tanstackStart({
-        // Deploy to Vercel using Nitro's vercel preset
-        server: {
-          preset: "vercel",
-        },
-      }),
+      tanstackStart(),
       viteReact(),
       mode === "development" && componentTagger(),
     ].filter(Boolean),
