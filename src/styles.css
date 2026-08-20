@@ -129,7 +129,7 @@
   --sidebar-border: oklch(0.90 0.02 130);
   --sidebar-ring: oklch(0.46 0.17 145);
 
-  /* ── Premium Shadow Tokens ── */
+  /* ── Premium Shadow & 3D Depth Tokens ── */
   --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
   --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
@@ -140,6 +140,32 @@
   --shadow-card-hover: 0 0 0 1px rgba(0,0,0,0.06), 0 6px 12px rgba(0,0,0,0.06), 0 20px 40px rgba(0,0,0,0.10);
   --shadow-primary-glow: 0 0 20px rgba(34, 139, 74, 0.25), 0 4px 12px rgba(34, 139, 74, 0.15);
   --shadow-accent-glow: 0 0 20px rgba(253, 185, 94, 0.30), 0 4px 12px rgba(253, 185, 94, 0.20);
+  
+  /* 6-Layer Neumorphic Depth with Specular Inset Highlight (from 3d-scroll-website skill) */
+  --shadow-neumorphic:
+    0px 0.7px 0.7px -0.67px rgba(0, 0, 0, 0.06),
+    0px 1.8px 1.8px -1.33px rgba(0, 0, 0, 0.06),
+    0px 3.6px 3.6px -2px rgba(0, 0, 0, 0.05),
+    0px 6.9px 6.9px -2.67px rgba(0, 0, 0, 0.05),
+    0px 13.6px 13.6px -3.33px rgba(0, 0, 0, 0.04),
+    0px 30px 30px -4px rgba(0, 0, 0, 0.02),
+    inset 0px 1.5px 1px 0px rgba(255, 255, 255, 0.9);
+  
+  --shadow-neumorphic-hover:
+    0px 1.4px 1.4px -0.67px rgba(0, 0, 0, 0.08),
+    0px 3.6px 3.6px -1.33px rgba(0, 0, 0, 0.08),
+    0px 7.2px 7.2px -2px rgba(0, 0, 0, 0.07),
+    0px 14px 14px -2.67px rgba(0, 0, 0, 0.07),
+    0px 28px 28px -3.33px rgba(0, 0, 0, 0.06),
+    0px 50px 50px -4px rgba(0, 0, 0, 0.04),
+    inset 0px 2px 1px 0px rgba(255, 255, 255, 1);
+
+  --shadow-neumorphic-pill:
+    0px 0.7px 0.7px -0.67px rgba(0,0,0,0.08),
+    0px 1.8px 1.8px -1.33px rgba(0,0,0,0.08),
+    0px 3.6px 3.6px -2px rgba(0,0,0,0.07),
+    0px 6.9px 6.9px -2.67px rgba(0,0,0,0.07),
+    inset 0px 1.5px 1px 0px rgba(255,255,255,1);
 }
 
 /* ── Dark Theme ── */
@@ -584,3 +610,141 @@
   color: var(--color-muted-foreground);
   opacity: 0.8;
 }
+
+/* ════════════════════════════════════════════════════════
+   3D PERSPECTIVE & NEUMORPHIC UTILITIES (Skill Presets)
+════════════════════════════════════════════════════════ */
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.perspective-1200 {
+  perspective: 1200px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+/* Neumorphic 3D Card Surface */
+.neumorphic-card {
+  background: var(--color-card);
+  border-radius: 1.5rem;
+  box-shadow: var(--shadow-neumorphic);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  transition: all 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dark .neumorphic-card {
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.neumorphic-card:hover {
+  box-shadow: var(--shadow-neumorphic-hover);
+}
+
+/* Specular Rim Glass Pill */
+.glass-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: var(--shadow-neumorphic-pill);
+}
+
+.dark .glass-pill {
+  background: rgba(20, 30, 24, 0.6);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+/* 3D Floating Animations */
+@keyframes float-slow {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+}
+
+@keyframes float-reverse {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(8px) rotate(-1deg);
+  }
+}
+
+@keyframes pulse-radar {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(1000%); }
+}
+
+@keyframes rotate-cube {
+  0% { transform: rotateX(-15deg) rotateY(0deg); }
+  50% { transform: rotateX(15deg) rotateY(180deg); }
+  100% { transform: rotateX(-15deg) rotateY(360deg); }
+}
+
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+  animation: float-reverse 7s ease-in-out infinite;
+}
+
+.animate-radar {
+  animation: pulse-radar 3s ease-in-out infinite;
+}
+
+.animate-cube-3d {
+  animation: rotate-cube 20s linear infinite;
+}
+
+/* Shimmer beam border */
+.shimmer-border {
+  position: relative;
+}
+.shimmer-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.6), transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: scanline 4s linear infinite;
+  pointer-events: none;
+}
+
