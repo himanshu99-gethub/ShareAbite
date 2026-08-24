@@ -277,19 +277,19 @@ export function OtpVerification({ email, role, fullName, password, onSuccess, on
       )}
 
       <form onSubmit={handleVerify} className="space-y-5">
-        <div className="flex justify-center my-2">
+        <div className="flex justify-center my-2 w-full overflow-x-auto py-1">
           <InputOTP
             maxLength={6}
             value={otp}
             onChange={(val) => { setOtp(val); if (errorMessage) setErrorMessage(null); }}
             pattern={REGEXP_ONLY_DIGITS}
           >
-            <InputOTPGroup className="gap-2">
+            <InputOTPGroup className="gap-1.5 sm:gap-2 justify-center">
               {[0,1,2,3,4,5].map((i) => (
                 <InputOTPSlot
                   key={i}
                   index={i}
-                  className="w-10 h-12 text-lg font-bold rounded-xl border border-input bg-background text-center focus:ring-2 focus:ring-primary shadow-sm"
+                  className="w-9 h-11 sm:w-11 sm:h-12 text-base sm:text-lg font-bold rounded-xl border border-input bg-background text-center focus:ring-2 focus:ring-primary shadow-xs transition-all"
                 />
               ))}
             </InputOTPGroup>

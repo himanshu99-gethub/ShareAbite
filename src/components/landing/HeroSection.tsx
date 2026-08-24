@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Link } from "@tanstack/react-router";
 import { Leaf, ArrowRight, ChevronDown, UtensilsCrossed, Building2 } from "lucide-react";
 import bgVideo from "../../../Cinematic_aerial_drone_footage.mp4";
+import { Hero3dBackground } from "./Hero3dBackground";
 
 /* ─── Floating Background Orbs ─── */
 function FloatingOrb({ className }: { className: string }) {
@@ -87,6 +88,9 @@ export function HeroSection() {
             <source src={bgVideo} type="video/mp4" />
           </video>
         </div>
+
+        {/* 3D Interactive Spatial Particle Mesh Canvas */}
+        <Hero3dBackground />
 
         {/* Gradient overlays */}
         <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-emerald-950/70 via-emerald-950/30 to-transparent z-[1]" />

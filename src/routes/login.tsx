@@ -595,14 +595,14 @@ function LoginPage() {
   };
 
   // ── Shared input field style ──
-  const inputCls = "w-full rounded-xl border border-input bg-background pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all placeholder:text-muted-foreground/70";
+  const inputCls = "w-full rounded-xl border border-input bg-background pl-11 pr-4 py-2.5 sm:py-3 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all placeholder:text-muted-foreground/70";
   const submitBtnCls = (isLoading: boolean) =>
     `w-full rounded-xl py-3 text-sm font-bold text-white transition-all duration-200 active:scale-[0.98] disabled:opacity-40 shadow-lg flex items-center justify-center gap-2 ${
       isDonor ? "bg-primary hover:bg-primary/90 shadow-primary/20" : "bg-accent hover:bg-accent/90 shadow-accent/20"
     } ${isLoading ? "pointer-events-none" : ""}`;
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-10">
+    <div className="min-h-[100dvh] bg-background flex items-center justify-center px-3 sm:px-4 py-6 sm:py-10">
       {/* Decorative background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-0 w-72 h-72 rounded-full bg-primary/4 -translate-x-1/2 -translate-y-1/2 blur-[80px]" />
@@ -616,9 +616,9 @@ function LoginPage() {
         <BrandPanel />
 
         {/* Right form panel */}
-        <div className="bg-card p-8 sm:p-10 flex flex-col justify-center min-h-[600px]">
+        <div className="bg-card p-5 sm:p-8 md:p-10 flex flex-col justify-center min-h-[520px] sm:min-h-[600px]">
           {/* Mobile logo */}
-          <Link to="/" className="flex items-center justify-center gap-2.5 mb-8 lg:hidden hover:opacity-80 transition-opacity">
+          <Link to="/" className="flex items-center justify-center gap-2.5 mb-6 sm:mb-8 lg:hidden hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-emerald-600 flex items-center justify-center shadow-md border border-primary/20">
               <Leaf className="w-4 h-4 text-white" />
             </div>
