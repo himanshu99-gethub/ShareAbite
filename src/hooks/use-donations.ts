@@ -23,7 +23,7 @@ export function useDonations(options?: { donorId?: string; statusFilter?: string
         query = query.eq("donor_id", options.donorId);
       }
       if (options?.statusFilter && options.statusFilter.length > 0) {
-        query = query.in("status", options.statusFilter);
+        query = query.in("status", options.statusFilter as any);
       }
 
       const { data, error } = await query;

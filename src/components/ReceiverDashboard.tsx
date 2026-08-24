@@ -131,19 +131,7 @@ export function ReceiverDashboard({ receiverId, receiverName }: ReceiverDashboar
     .filter((r) => r.donations)
     .map((r) => ({
       ...r.donations!,
-      id: r.donations!.id,
-      food_type: r.donations!.food_type,
-      quantity: r.donations!.quantity,
-      description: r.donations!.description,
-      photo_url: r.donations!.photo_url,
-      latitude: r.donations!.latitude,
-      longitude: r.donations!.longitude,
-      pickup_window_start: r.donations!.pickup_window_start,
-      pickup_window_end: r.donations!.pickup_window_end,
-      status: r.donations!.status as any,
       created_at: r.created_at,
-      donor_id: r.donations!.donor_id,
-      profiles: r.donations?.profiles ?? null,
       _requestStatus: r.status,
       _requestId: r.id,
     }));

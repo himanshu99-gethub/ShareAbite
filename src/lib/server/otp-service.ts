@@ -473,7 +473,7 @@ export async function requestVerifyPassword(emailInput: string, passwordInput: s
       const { data } = await admin.auth.admin.listUsers();
       const existingUser = data?.users?.find((u) => u.email?.toLowerCase() === email);
       if (existingUser) {
-        if (existingUser.user_metadata?.full_name) {
+        if (typeof existingUser.user_metadata?.full_name === "string") {
           registeredName = existingUser.user_metadata.full_name;
           userFullNameStore.set(email, registeredName);
         }

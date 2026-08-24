@@ -2,21 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 import type { Tables } from "@/integrations/supabase/types";
 
 export type PickupRequest = Tables<"pickup_requests"> & {
-  donations?: {
-    id: string;
-    food_type: string;
-    quantity: string;
-    pickup_address: string;
-    latitude: number | null;
-    longitude: number | null;
-    description: string | null;
-    photo_url: string | null;
-    pickup_window_start: string;
-    pickup_window_end: string;
-    status: string;
-    donor_id: string;
+  donations?: (Tables<"donations"> & {
     profiles?: { full_name: string | null; phone: string | null; org_name: string | null } | null;
-  } | null;
+  }) | null;
   profiles?: { full_name: string | null; phone: string | null; org_name: string | null } | null;
 };
 
@@ -38,7 +26,7 @@ export function usePickupRequests(options: { donationIds?: string[]; receiverId?
         .from("pickup_requests")
         .select(`
           *,
-          donations(id, food_type, quantity, pickup_address, latitude, longitude, description, photo_url, pickup_window_start, pickup_window_end, status, donor_id, profiles(full_name, phone, org_name)),
+          donations(*, profiles(full_name, phone, org_name)),
           profiles(full_name, phone, org_name)
         `)
         .order("created_at", { ascending: false });
