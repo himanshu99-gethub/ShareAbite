@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { OtpVerification } from "@/components/auth/OtpVerification";
+import { Login3dBackground } from "@/components/auth/Login3dBackground";
 
 async function getSupabase() {
   const { supabase } = await import("@/integrations/supabase/client");
@@ -602,21 +603,24 @@ function LoginPage() {
     } ${isLoading ? "pointer-events-none" : ""}`;
 
   return (
-    <div className="min-h-[100dvh] bg-background flex items-center justify-center px-3 sm:px-4 py-6 sm:py-10">
-      {/* Decorative background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-0 w-72 h-72 rounded-full bg-primary/4 -translate-x-1/2 -translate-y-1/2 blur-[80px]" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-accent/6 translate-x-1/3 translate-y-1/3 blur-[100px]" />
+    <div className="relative min-h-[100dvh] w-full overflow-x-hidden bg-background flex flex-col items-center justify-center p-3 sm:p-6 lg:p-10">
+      {/* 3D Interactive Spatial Particle Background */}
+      <Login3dBackground />
+
+      {/* Decorative ambient gradients (strictly bounded) */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-0 left-0 w-72 h-72 rounded-full bg-primary/5 -translate-x-1/2 -translate-y-1/2 blur-[80px]" />
+        <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-accent/6 translate-x-1/4 translate-y-1/4 blur-[90px]" />
       </div>
 
-      {/* Card container */}
-      <div className="relative z-10 w-full max-w-[900px] grid lg:grid-cols-[1fr_1fr] rounded-2xl overflow-hidden shadow-2xl border border-border/50 animate-fade-up-blur">
+      {/* Card container - strictly centered on mobile and desktop */}
+      <div className="relative z-10 w-full max-w-[440px] lg:max-w-[920px] mx-auto my-auto grid lg:grid-cols-[1fr_1fr] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-border/60 bg-card/95 backdrop-blur-xl animate-fade-up-blur">
 
         {/* Left brand panel */}
         <BrandPanel />
 
         {/* Right form panel */}
-        <div className="bg-card p-5 sm:p-8 md:p-10 flex flex-col justify-center min-h-[520px] sm:min-h-[600px]">
+        <div className="bg-card p-5 sm:p-8 md:p-10 flex flex-col justify-center min-h-[500px] sm:min-h-[580px] w-full">
           {/* Mobile logo */}
           <Link to="/" className="flex items-center justify-center gap-2.5 mb-6 sm:mb-8 lg:hidden hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-emerald-600 flex items-center justify-center shadow-md border border-primary/20">

@@ -60,11 +60,11 @@ export const Route = createRootRoute({
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="overflow-x-hidden">
       <head>
         <HeadContent />
       </head>
-      <body className="pb-[env(safe-area-inset-bottom)]">
+      <body className="pb-[env(safe-area-inset-bottom)] overflow-x-hidden min-h-screen">
         {children}
         <Scripts />
       </body>
