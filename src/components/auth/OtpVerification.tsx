@@ -208,38 +208,47 @@ export function OtpVerification({ email, role, fullName, password, onSuccess, on
     }
   };
 
+  // Auto-verify as soon as all 6 digits are typed or pasted
+  useEffect(() => {
+    if (otp.length === 6 && !loading) {
+      handleVerify();
+    }
+  }, [otp]);
+
   const handleResend = async () => {
     if (!canResend || resendLoading) return;
     setResendLoading(true);
     setErrorMessage(null);
 
-    try {
-      const supabase = await getSupabase();
+    // Instant optimistic UI reset — 0ms delay!
+    setCountdown(60);
+    setCanResend(false);
+    setOtp("");
 
-      // Use Supabase native OTP sending
-      const { error } = await supabase.auth.signInWithOtp({
-        email: email.trim().toLowerCase(),
-        options: { shouldCreateUser: true },
+    try {
+      const cleanEmail = email.trim().toLowerCase();
+
+      // 1. Call high-speed Resend API directly (<200ms)
+      const response = await fetch("/auth/resend-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: cleanEmail, role }),
+      });
+      const resData = await response.json();
+
+      // 2. Background Supabase trigger without blocking UI
+      getSupabase().then((supabase) => {
+        supabase.auth.signInWithOtp({
+          email: cleanEmail,
+          options: { shouldCreateUser: false },
+        }).catch(() => {});
       });
 
-      if (error) {
-        // Fallback to our custom backend
-        const response = await fetch("/auth/resend-otp", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, role }),
-        });
-        const resData = await response.json();
-        if (!resData.success) {
-          toast.error(resData.error || "Failed to resend OTP.");
-          return;
-        }
+      if (resData?.success) {
+        toast.success("⚡ Fresh OTP code dispatched to your inbox!");
+      } else {
+        toast.error(resData?.error || "Failed to resend OTP.");
       }
-
-      toast.success("New OTP code sent to your email!");
-      setCountdown(60);
-      setCanResend(false);
-      setOtp("");
     } catch (err: any) {
       toast.error(err.message || "Network error while resending OTP.");
     } finally {
