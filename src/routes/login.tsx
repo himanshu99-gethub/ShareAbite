@@ -253,43 +253,31 @@ function LoginPage() {
   };
 
   const sendOtpToEmail = async (emailInput: string, otpType: "signup" | "login" = "login"): Promise<boolean> => {
-    // For signup: only use our custom backend OTP (NOT signInWithOtp which creates a passwordless account)
-    // For login OTP tab: use both Supabase magic-link AND custom backend
     const cleanEmail = emailInput.trim().toLowerCase();
 
-    if (otpType === "signup") {
-      // Only send via custom backend — password-based signup handles account creation separately
-      try {
-        const res = await fetch("/auth/send-otp", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: cleanEmail, role, type: "signup" }),
-        });
-        const data = await res.json();
-        return !!data.success;
-      } catch {
-        return false;
-      }
-    }
-
-    // Login OTP flow: try Supabase magic-link first, fallback to custom backend
-    const supabase = await getSupabase();
-    const [supaResult, customResult] = await Promise.allSettled([
-      supabase.auth.signInWithOtp({
-        email: cleanEmail,
-        options: { shouldCreateUser: false },
-      }),
-      fetch("/auth/send-otp", {
+    try {
+      // 1. Instant custom backend OTP dispatch
+      const res = await fetch("/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: cleanEmail, role, type: otpType }),
-      }).then((r) => r.json()),
-    ]);
+      });
+      const data = await res.json();
 
-    const supaOk = supaResult.status === "fulfilled" && !supaResult.value.error;
-    const customOk = customResult.status === "fulfilled" && (customResult.value as any).success;
+      // 2. Fire Supabase signInWithOtp in background for login if needed without blocking
+      if (otpType === "login") {
+        getSupabase().then((supabase) => {
+          supabase.auth.signInWithOtp({
+            email: cleanEmail,
+            options: { shouldCreateUser: false },
+          }).catch(() => {});
+        });
+      }
 
-    return supaOk || customOk;
+      return !!data?.success;
+    } catch {
+      return false;
+    }
   };
 
   const handleSendOtp = async (e: React.FormEvent) => {

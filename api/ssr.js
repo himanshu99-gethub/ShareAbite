@@ -175,10 +175,10 @@ async function handleAuthRoute(pathname, body) {
 
     memoryOtpStore.set(email, { otp: otpCode, expires_at: expiresAt, attempts: 0 });
 
-    const emailRes = await sendEmailViaTls({ to: email, otp: otpCode, type });
-    if (!emailRes.success) {
-      return { status: 500, body: { success: false, error: emailRes.error || "Failed to dispatch email." } };
-    }
+    // Dispatched instantly in background — no blocking the HTTP response!
+    sendEmailViaTls({ to: email, otp: otpCode, type }).catch((err) => {
+      console.error("[EmailService] Background SMTP dispatch error:", err);
+    });
 
     return { status: 200, body: { success: true, message: "OTP sent successfully to your email." } };
   }
@@ -226,10 +226,9 @@ async function handleAuthRoute(pathname, body) {
 
     memoryOtpStore.set(email, { otp: otpCode, expires_at: expiresAt, attempts: 0 });
 
-    const emailRes = await sendEmailViaTls({ to: email, otp: otpCode, type: "reset_password" });
-    if (!emailRes.success) {
-      return { status: 500, body: { success: false, error: emailRes.error || "Failed to dispatch email." } };
-    }
+    sendEmailViaTls({ to: email, otp: otpCode, type: "reset_password" }).catch((err) => {
+      console.error("[EmailService] Background reset password email error:", err);
+    });
 
     return { status: 200, body: { success: true, message: "Password reset OTP sent." } };
   }
