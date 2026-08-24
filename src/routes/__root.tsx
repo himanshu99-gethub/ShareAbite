@@ -76,7 +76,7 @@ import { ThemeProvider } from "@/components/ui/ThemeProvider";
 
 function RootComponent() {
   return (
-    <ThemeProvider defaultTheme="system" storageKey="shareabite-theme">
+    <ThemeProvider defaultTheme="light" storageKey="shareabite-theme">
       <div className="animate-page-enter">
         <Outlet />
       </div>
