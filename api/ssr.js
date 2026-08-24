@@ -1,4 +1,5 @@
 // Vercel Serverless Function — wraps TanStack Start SSR server and handles /auth/* endpoints
+import nodemailer from "nodemailer";
 import tls from "tls";
 import crypto from "crypto";
 import server from "../dist/server/server.js";
@@ -11,8 +12,18 @@ const userFullNameStore = new Map();
 const GMAIL_USER = process.env.EMAIL || "himanshu.projectai@gmail.com";
 const GMAIL_PASS = (process.env.EMAIL_PASSWORD || "unqhbprwkfcxvbko").replace(/[\s\u00A0]+/g, "");
 const JWT_SECRET = process.env.JWT_SECRET || "super_secret_jwt_key_for_otp_auth_2026";
-const SUPABASE_URL = process.env.SUPABASE_URL || "https://txjgfbacbysljqaeseqw.supabase.co";
-const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR4amdmYmFjYnlzbGpxYWVzZXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NTU2NzAsImV4cCI6MjEwMDAzMTY3MH0.rv7dfvn4BjtvtZY3wLPXnRS3-1AewSzD18sPE7kRCzw";
+
+// Reusable Nodemailer Transporter
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: GMAIL_USER,
+    pass: GMAIL_PASS,
+  },
+  pool: true,
+  maxConnections: 3,
+  maxMessages: 100,
+});
 
 function base64UrlEncode(str) {
   const buf = typeof str === "string" ? Buffer.from(str) : str;
@@ -31,7 +42,7 @@ function signJwt(payload, expiresInSeconds = 7 * 24 * 3600) {
   return `${encodedHeader}.${encodedPayload}.${encodedSignature}`;
 }
 
-function sendEmailViaTls({ to, otp, type = "login" }) {
+async function dispatchOtpEmail({ to, otp, type = "login" }) {
   const isReset = type === "reset_password";
   const subject = isReset ? "Password Reset Verification Code" : "Your Login Verification Code";
   const title = isReset ? "ShareABite Password Reset" : "ShareABite Verification";
@@ -57,6 +68,22 @@ function sendEmailViaTls({ to, otp, type = "login" }) {
     </div>
   `;
 
+  // 1. Primary: Nodemailer Fast Pool
+  try {
+    const info = await transporter.sendMail({
+      from: `"ShareABite Authentication" <${GMAIL_USER}>`,
+      to,
+      subject,
+      text: textBody,
+      html: htmlBody,
+    });
+    console.log(`[EmailService] Nodemailer sent OTP to ${to} (MessageId: ${info.messageId})`);
+    return { success: true, messageId: info.messageId };
+  } catch (nmErr) {
+    console.warn("[EmailService] Nodemailer error, trying direct TLS socket fallback:", nmErr?.message);
+  }
+
+  // 2. Fallback: Direct TLS Socket on Port 465
   return new Promise((resolve) => {
     let resolved = false;
     const timeout = setTimeout(() => {
@@ -65,7 +92,7 @@ function sendEmailViaTls({ to, otp, type = "login" }) {
         console.error("[EmailService] SMTP timeout");
         resolve({ success: false, error: "SMTP timeout" });
       }
-    }, 10000);
+    }, 8000);
 
     try {
       const client = tls.connect(465, "smtp.gmail.com", { rejectUnauthorized: false }, () => {
@@ -125,7 +152,6 @@ function sendEmailViaTls({ to, otp, type = "login" }) {
             if (!resolved) {
               resolved = true;
               clearTimeout(timeout);
-              console.log(`[EmailService] OTP sent successfully to ${to}`);
               resolve({ success: true });
             }
           } else if (resp.startsWith("5") || resp.startsWith("4")) {
@@ -133,7 +159,6 @@ function sendEmailViaTls({ to, otp, type = "login" }) {
             if (!resolved) {
               resolved = true;
               clearTimeout(timeout);
-              console.error("[EmailService] SMTP error:", resp.trim());
               resolve({ success: false, error: resp.trim() });
             }
           }
@@ -144,7 +169,7 @@ function sendEmailViaTls({ to, otp, type = "login" }) {
           if (!resolved) {
             resolved = true;
             clearTimeout(timeout);
-            resolve({ success: false, error: err?.message || "TLS socket error" });
+            resolve({ success: false, error: err?.message });
           }
         });
       });
@@ -175,10 +200,11 @@ async function handleAuthRoute(pathname, body) {
 
     memoryOtpStore.set(email, { otp: otpCode, expires_at: expiresAt, attempts: 0 });
 
-    // Dispatched instantly in background — no blocking the HTTP response!
-    sendEmailViaTls({ to: email, otp: otpCode, type }).catch((err) => {
-      console.error("[EmailService] Background SMTP dispatch error:", err);
-    });
+    // Await email dispatch so Vercel does not terminate lambda before sending
+    const emailRes = await dispatchOtpEmail({ to: email, otp: otpCode, type });
+    if (!emailRes.success) {
+      return { status: 500, body: { success: false, error: emailRes.error || "Failed to dispatch email." } };
+    }
 
     return { status: 200, body: { success: true, message: "OTP sent successfully to your email." } };
   }
@@ -226,9 +252,10 @@ async function handleAuthRoute(pathname, body) {
 
     memoryOtpStore.set(email, { otp: otpCode, expires_at: expiresAt, attempts: 0 });
 
-    sendEmailViaTls({ to: email, otp: otpCode, type: "reset_password" }).catch((err) => {
-      console.error("[EmailService] Background reset password email error:", err);
-    });
+    const emailRes = await dispatchOtpEmail({ to: email, otp: otpCode, type: "reset_password" });
+    if (!emailRes.success) {
+      return { status: 500, body: { success: false, error: emailRes.error || "Failed to dispatch email." } };
+    }
 
     return { status: 200, body: { success: true, message: "Password reset OTP sent." } };
   }
