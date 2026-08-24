@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 /* Leaflet CSS is in __root.tsx */
@@ -208,9 +209,7 @@
   --shadow-card-hover: 0 0 0 1px rgba(255,255,255,0.06), 0 6px 12px rgba(0,0,0,0.40), 0 20px 40px rgba(0,0,0,0.40);
 }
 
-/* ── Google Font Import ── */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-
+/* ── Base Styles ── */
 @layer base {
   html {
     scroll-behavior: smooth;
