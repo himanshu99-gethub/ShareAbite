@@ -1,16 +1,5 @@
 import path from "path";
 import fs from "fs";
-
-try {
-  const src = "C:/Users/shaky/.gemini/antigravity-ide/brain/95983604-b06b-4e39-8e09-c88c9c09c909/media__1784310779262.jpg";
-  const dest = path.resolve(__dirname, "./src/assets/hero-image.jpg");
-  if (fs.existsSync(src)) {
-    fs.copyFileSync(src, dest);
-  }
-} catch (e) {
-  console.error("Vite helper failed to copy hero image:", e);
-}
-
 import { defineConfig, loadEnv } from "vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 // Cloudflare plugin removed — deploying to Vercel instead
