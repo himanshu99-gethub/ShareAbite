@@ -92,9 +92,9 @@ export function renderEmailContent(otp: string, type: "login" | "reset_password"
  */
 export async function sendOtpEmail({ to, otp, type = "login" }: SendEmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
   const currentEnv = getFreshEnv();
-  const rawEmail = currentEnv.EMAIL || "";
-  const rawPass = currentEnv.EMAIL_PASSWORD || "";
-  const smtpServer = (currentEnv.SMTP_SERVER || "smtp.gmail.com").trim();
+  const rawEmail = currentEnv.EMAIL || process.env.EMAIL || "himanshu.projectai@gmail.com";
+  const rawPass = currentEnv.EMAIL_PASSWORD || process.env.EMAIL_PASSWORD || "unqhbprwkfcxvbko";
+  const smtpServer = (currentEnv.SMTP_SERVER || process.env.SMTP_SERVER || "smtp.gmail.com").trim();
 
   // Clean email and strip ALL spaces and non-breaking spaces (\u00A0) from App Password
   const emailUser = rawEmail.trim();
