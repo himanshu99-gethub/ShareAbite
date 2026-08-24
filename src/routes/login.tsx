@@ -396,31 +396,13 @@ function LoginPage() {
       const supabase = await getSupabase();
       const emailLower = email.trim().toLowerCase();
 
-      // Block login if no account exists for this email
-      const { data: existingProfile } = await supabase
-        .from("profiles")
-        .select("email")
-        .eq("email" as any, emailLower)
-        .maybeSingle();
-
-      if (!existingProfile) {
-        toast.error("❌ No account found with this email. Please create an account first.", {
-          duration: 5000,
-          action: {
-            label: "Create Account",
-            onClick: () => { setAuthMode("signup"); },
-          },
-        });
-        setAuthMode("signup");
-        return;
-      }
-
+      // 1. Direct Supabase authentication
       const { data, error } = await supabase.auth.signInWithPassword({
         email: emailLower,
         password,
       });
 
-      if (!error && data.user) {
+      if (!error && data?.user) {
         const { data: profile } = await supabase
           .from("profiles")
           .select("role, full_name")
@@ -434,12 +416,15 @@ function LoginPage() {
 
         if (typeof window !== "undefined") {
           localStorage.setItem(`registered_name_${emailLower}`, finalName);
+          localStorage.setItem(`registered_role_${emailLower}`, profile?.role || data.user.user_metadata?.role || "donor");
         }
 
+        toast.success("Welcome back!");
         navigate({ to: "/app" });
         return;
       }
 
+      // 2. Custom serverless authentication fallback
       const response = await fetch("/auth/verify-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -447,12 +432,20 @@ function LoginPage() {
       });
       const resData = await response.json();
 
-      if (response.ok && resData.success) {
+      if (response.ok && resData?.success) {
+        toast.success("Welcome back!");
         handleOtpSuccess(resData.token, resData.user);
         return;
       }
 
-      toast.error(error?.message || resData.error || "Invalid email or password.");
+      // 3. If both fail, show specific credential error
+      if (error?.message?.toLowerCase().includes("invalid login credentials") ||
+          error?.message?.toLowerCase().includes("invalid grant") ||
+          resData?.error) {
+        toast.error("Incorrect email or password. Please try again.");
+      } else {
+        toast.error(error?.message || resData?.error || "Sign-in failed.");
+      }
     } catch (err: any) {
       toast.error(err.message || "Sign-in failed.");
     } finally {
