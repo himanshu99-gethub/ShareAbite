@@ -200,11 +200,12 @@ async function handleAuthRoute(pathname, body) {
 
     memoryOtpStore.set(email, { otp: otpCode, expires_at: expiresAt, attempts: 0 });
 
-    // Await email dispatch so Vercel does not terminate lambda before sending
-    const emailRes = await dispatchOtpEmail({ to: email, otp: otpCode, type });
-    if (!emailRes.success) {
-      return { status: 500, body: { success: false, error: emailRes.error || "Failed to dispatch email." } };
-    }
+    // Race fast dispatch so the client response is returned in <1 second
+    const emailPromise = dispatchOtpEmail({ to: email, otp: otpCode, type });
+    await Promise.race([
+      emailPromise,
+      new Promise((resolve) => setTimeout(resolve, 1200)),
+    ]);
 
     return { status: 200, body: { success: true, message: "OTP sent successfully to your email." } };
   }

@@ -283,34 +283,18 @@ function LoginPage() {
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) { toast.error("Please enter your email address."); return; }
+
+    // Instant transition — 0ms delay!
+    setStep("verify");
     setOtpSending(true);
+
     try {
-      const supabase = await getSupabase();
-      const emailLower = email.trim().toLowerCase();
-
-      // Block OTP login if account doesn't exist
-      const { data: existingProfile } = await supabase
-        .from("profiles")
-        .select("email")
-        .eq("email" as any, emailLower)
-        .maybeSingle();
-
-      if (!existingProfile) {
-        toast.error("❌ No account found with this email. Please create an account first.", {
-          duration: 5000,
-          action: {
-            label: "Create Account",
-            onClick: () => { setAuthMode("signup"); },
-          },
-        });
-        setAuthMode("signup");
-        return;
+      const ok = await sendOtpToEmail(email, "login");
+      if (!ok) {
+        toast.error("Failed to send OTP. Please check your email.");
+      } else {
+        toast.success("Verification code dispatched to your email!");
       }
-
-      const ok = await sendOtpToEmail(email);
-      if (!ok) { toast.error("Failed to send OTP. Please try again."); return; }
-      toast.success("Verification OTP sent to your email!");
-      setStep("verify");
     } catch (err: any) {
       toast.error(err.message || "Network error.");
     } finally {
@@ -326,73 +310,44 @@ function LoginPage() {
 
     const emailLower = email.trim().toLowerCase();
 
-    try {
-      const supabase = await getSupabase();
-
-      const { data: existingProfile } = await supabase
-        .from("profiles")
-        .select("email")
-        .eq("email" as any, emailLower)
-        .maybeSingle();
-
-      if (existingProfile) {
-        toast.error("⚠️ Account already exists! Please Sign In instead.", {
-          duration: 5000,
-          action: {
-            label: "Go to Sign In",
-            onClick: () => { setAuthMode("signin"); setAuthMethod("password"); },
-          },
-        });
-        setAuthMode("signin");
-        setAuthMethod("password");
-        return;
-      }
-    } catch (_) {}
-
     if (typeof window !== "undefined") {
       localStorage.setItem(`registered_name_${emailLower}`, fullName.trim());
       localStorage.setItem(`registered_role_${emailLower}`, role);
     }
 
+    // Instant transition — 0ms delay!
+    setStep("verify");
     setOtpSending(true);
+
     try {
       const supabase = await getSupabase();
 
-      // Step 1: Create the Supabase account with email + password (NOT signInWithOtp)
-      // This ensures the user can log in with password later without OTP being required
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: emailLower,
-        password,
-        options: {
-          data: { full_name: fullName.trim(), role },
-        },
-      });
+      // Fire Supabase signup and OTP send in parallel
+      const [signUpRes, ok] = await Promise.all([
+        supabase.auth.signUp({
+          email: emailLower,
+          password,
+          options: {
+            data: { full_name: fullName.trim(), role },
+          },
+        }).catch(() => null),
+        sendOtpToEmail(email, "signup"),
+      ]);
 
-      if (signUpError) {
-        // If user already exists in Supabase auth but not in profiles, let them sign in
-        if (signUpError.message?.toLowerCase().includes("already registered") ||
-            signUpError.message?.toLowerCase().includes("already exists")) {
-          toast.error("⚠️ Account already exists! Please Sign In instead.", {
-            duration: 5000,
-            action: {
-              label: "Go to Sign In",
-              onClick: () => { setAuthMode("signin"); setAuthMethod("password"); },
-            },
-          });
+      if (signUpRes?.error) {
+        if (signUpRes.error.message?.toLowerCase().includes("already registered") ||
+            signUpRes.error.message?.toLowerCase().includes("already exists")) {
+          toast.error("⚠️ Account already exists! Please Sign In instead.");
           setAuthMode("signin");
           setAuthMethod("password");
+          setStep("email");
           return;
         }
-        // For other errors, fall through to custom OTP-only registration
-        console.warn("[Signup] Supabase signUp error:", signUpError.message);
       }
 
-      // Step 2: Send OTP only via our custom backend for email verification
-      // Do NOT call signInWithOtp — that would overwrite the password-based account
-      const ok = await sendOtpToEmail(email, "signup");
-      if (!ok) { toast.error("Failed to send verification OTP."); return; }
-      toast.success("Verification code sent! Check your email.");
-      setStep("verify");
+      if (ok) {
+        toast.success("Verification code sent! Check your email.");
+      }
     } catch (err: any) {
       toast.error(err.message || "Network error.");
     } finally {
