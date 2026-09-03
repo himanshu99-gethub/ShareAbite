@@ -1,12 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { X, MapPin, UtensilsCrossed, Package, Clock, Image, Loader2, Navigation, Phone } from "lucide-react";
 import { toast } from "sonner";
-
-// Leaflet loaded via CDN in __root.tsx
-declare const L: any;
+import { loadLeaflet } from "@/lib/leaflet-loader";
 
 // ─── Standalone Map Picker Component ────────────────────────────────────────
-// Separate component so its own useEffect([]) runs AFTER the div is mounted.
 interface MapPickerInnerProps {
   initLat: number;
   initLng: number;
@@ -17,64 +14,75 @@ function MapPickerInner({ initLat, initLng, onSelect }: MapPickerInnerProps) {
   const divRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
+  const [isMapReady, setIsMapReady] = useState(false);
 
-  // Stable callback so we don't recreate marker on every parent re-render
   const onSelectRef = useRef(onSelect);
-  useEffect(() => { onSelectRef.current = onSelect; }, [onSelect]);
+  useEffect(() => {
+    onSelectRef.current = onSelect;
+  }, [onSelect]);
 
   useEffect(() => {
-    if (!divRef.current) return;
-    if (typeof L === "undefined") {
-      console.error("Leaflet (L) not loaded yet");
-      return;
-    }
+    let active = true;
+    loadLeaflet()
+      .then(() => {
+        if (active) setIsMapReady(true);
+      })
+      .catch((err) => console.error("Map picker leaflet error:", err));
 
-    // Create map
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isMapReady || !divRef.current || mapRef.current) return;
+    const L = (window as any).L;
+    if (!L) return;
+
     const map = L.map(divRef.current, {
       zoomControl: true,
       attributionControl: false,
     }).setView([initLat, initLng], initLat !== 20.5937 ? 15 : 5);
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-    }).addTo(map);
+    L.tileLayer(
+      "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+      {
+        subdomains: "abcd",
+        maxZoom: 19,
+      }
+    ).addTo(map);
 
-    // Pin icon
     const pinIcon = () =>
       L.divIcon({
-        html: `<div style="width:32px;height:32px;border-radius:50%;background:#48864b;border:3px solid white;box-shadow:0 3px 12px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-size:15px;">📍</div>`,
-        iconSize: [32, 32],
-        iconAnchor: [16, 32],
-        className: "",
+        html: `<div style="width:34px;height:34px;border-radius:50%;background:#10b981;border:3px solid white;box-shadow:0 3px 12px rgba(16,185,129,0.5);display:flex;align-items:center;justify-content:center;font-size:16px;">📍</div>`,
+        iconSize: [34, 34],
+        iconAnchor: [17, 34],
+        className: "custom-leaflet-pin",
       });
 
-    // Show initial marker if we have a real location
     if (initLat !== 20.5937) {
       markerRef.current = L.marker([initLat, initLng], { icon: pinIcon() })
         .addTo(map)
-        .bindPopup("<strong style='font-family:system-ui'>Aapki location</strong>")
+        .bindPopup("<strong style='font-family:system-ui'>Selected Pickup Spot</strong>")
         .openPopup();
     }
 
-    // Click to place/move marker
     map.on("click", async (e: any) => {
       const { lat, lng } = e.latlng;
 
       if (markerRef.current) markerRef.current.remove();
       markerRef.current = L.marker([lat, lng], { icon: pinIcon() })
         .addTo(map)
-        .bindPopup("<strong style='font-family:system-ui'>Pickup Location</strong>")
+        .bindPopup("<strong style='font-family:system-ui'>Selected Pickup Spot</strong>")
         .openPopup();
 
       onSelectRef.current(lat, lng);
 
-      // Reverse geocode
       try {
         const res = await fetch(
           `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
         );
         const data = await res.json();
-        // Pass address data via a custom event so parent can fill fields
         const evt = new CustomEvent("map-geocode", { detail: data.address ?? {} });
         window.dispatchEvent(evt);
       } catch {
@@ -84,18 +92,18 @@ function MapPickerInner({ initLat, initLng, onSelect }: MapPickerInnerProps) {
 
     mapRef.current = map;
 
-    // MUST call invalidateSize after mount so Leaflet knows the real dimensions
     setTimeout(() => {
       map.invalidateSize(true);
-    }, 50);
+    }, 80);
 
     return () => {
-      map.remove();
-      mapRef.current = null;
-      markerRef.current = null;
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+        markerRef.current = null;
+      }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // empty deps — run once on mount
+  }, [isMapReady, initLat, initLng]);
 
   return (
     <div

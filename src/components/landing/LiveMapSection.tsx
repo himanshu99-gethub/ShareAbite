@@ -5,7 +5,9 @@ import { MapPin, ShieldCheck, Clock, Loader2, Radio, Compass, Sparkles } from "l
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 
 export function LiveMapSection() {
-  const { donations, isLoading: isLoadingDonations } = useDonations({ statusFilter: ['pending', 'accepted'] });
+  const { donations, isLoading: isLoadingDonations } = useDonations({
+    statusFilter: ["available", "requested", "confirmed"],
+  });
   const [ngos, setNgos] = useState<NGOProfile[]>([]);
   const [isLoadingNgos, setIsLoadingNgos] = useState(true);
   const [userLat, setUserLat] = useState<number | null>(null);
@@ -13,14 +15,14 @@ export function LiveMapSection() {
   const { ref, isIntersecting } = useIntersectionObserver();
 
   useEffect(() => {
-    if (navigator.geolocation) {
+    if (typeof window !== "undefined" && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           setUserLat(pos.coords.latitude);
           setUserLng(pos.coords.longitude);
         },
         () => {
-          console.log("Geolocation permission denied or failed.");
+          console.log("Geolocation permission denied or running in default area.");
         }
       );
     }
@@ -37,12 +39,47 @@ export function LiveMapSection() {
 
         if (error) throw error;
 
-        const dummyNgos = (data || []).map((ngo) => ({
-          ...ngo,
-          latitude: 20.5937 + (Math.random() - 0.5) * 5,
-          longitude: 78.9629 + (Math.random() - 0.5) * 5,
-        }));
-        setNgos(dummyNgos);
+        // Default cities coordinates if receivers don't have explicit coords
+        const defaultAnchorLat = userLat || 28.6139;
+        const defaultAnchorLng = userLng || 77.2090;
+
+        const defaultMockNgos = [
+          {
+            id: "ngo-1",
+            org_name: "Robin Hood Army - Delhi North",
+            full_name: "Amit Sharma",
+            phone: "+91 98101 23456",
+            latitude: defaultAnchorLat + 0.015,
+            longitude: defaultAnchorLng - 0.012,
+          },
+          {
+            id: "ngo-2",
+            org_name: "Feeding India Shelter Wing",
+            full_name: "Priya Varma",
+            phone: "+91 98765 43210",
+            latitude: defaultAnchorLat - 0.018,
+            longitude: defaultAnchorLng + 0.019,
+          },
+          {
+            id: "ngo-3",
+            org_name: "Annakshetra Community Kitchen",
+            full_name: "Rajesh Gupta",
+            phone: "+91 94140 11223",
+            latitude: defaultAnchorLat + 0.024,
+            longitude: defaultAnchorLng + 0.021,
+          },
+        ];
+
+        if (data && data.length > 0) {
+          const mapped = data.map((ngo, idx) => ({
+            ...ngo,
+            latitude: defaultAnchorLat + ((idx % 3) - 1) * 0.02 + (Math.random() - 0.5) * 0.01,
+            longitude: defaultAnchorLng + (((idx + 1) % 3) - 1) * 0.02 + (Math.random() - 0.5) * 0.01,
+          }));
+          setNgos(mapped);
+        } else {
+          setNgos(defaultMockNgos);
+        }
       } catch (err) {
         console.error("Error fetching NGOs for map", err);
       } finally {
@@ -50,7 +87,7 @@ export function LiveMapSection() {
       }
     }
     fetchNgos();
-  }, []);
+  }, [userLat, userLng]);
 
   const totalActive = donations.length;
   const totalNgos = ngos.length;
