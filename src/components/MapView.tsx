@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { Donation } from "@/hooks/use-donations";
 import { loadLeaflet } from "@/lib/leaflet-loader";
-import { Compass, Locate, ZoomIn, ZoomOut, Loader2 } from "lucide-react";
+import { Compass, Locate, ZoomIn, ZoomOut, Loader2, Navigation } from "lucide-react";
 
 export interface NGOProfile {
   id: string;
@@ -44,11 +44,13 @@ export function MapView({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
+  const userMarkerRef = useRef<any>(null);
   const polylineRef = useRef<any>(null);
   const [isLeafletReady, setIsLeafletReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const initialCenterDoneRef = useRef(false);
 
-  // Load Leaflet library dynamically
+  // 1. Dynamic Leaflet loader
   useEffect(() => {
     let isMounted = true;
     loadLeaflet()
@@ -57,7 +59,7 @@ export function MapView({
       })
       .catch((err) => {
         console.error("Leaflet load error:", err);
-        if (isMounted) setLoadError("Unable to load map assets. Please check your internet connection.");
+        if (isMounted) setLoadError("Map assets loading failed. Check your internet connection.");
       });
 
     return () => {
@@ -65,7 +67,7 @@ export function MapView({
     };
   }, []);
 
-  // Initialize Map Instance once Leaflet is ready and container is mounted
+  // 2. Initialize Map Instance
   useEffect(() => {
     if (!isLeafletReady || !mapContainerRef.current) return;
     if (mapInstanceRef.current) return;
@@ -73,17 +75,18 @@ export function MapView({
     const L = (window as any).L;
     if (!L) return;
 
-    const initialLat = userLat ?? 28.6139; // Default center (e.g. New Delhi / India or user coord)
+    // Center on user's current location if available, else India default (28.6139, 77.2090)
+    const initialLat = userLat ?? 28.6139;
     const initialLng = userLng ?? 77.2090;
     const initialZoom = userLat && userLng ? 13 : 6;
 
     try {
       const map = L.map(mapContainerRef.current, {
-        zoomControl: false, // We render modern custom controls
+        zoomControl: false,
         attributionControl: true,
       }).setView([initialLat, initialLng], initialZoom);
 
-      // CartoDB Voyager / OpenStreetMap raster tile layer for ultra clean, modern UI
+      // CartoDB Voyager raster tiles for crisp modern look
       L.tileLayer(
         "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
         {
@@ -96,7 +99,7 @@ export function MapView({
 
       mapInstanceRef.current = map;
 
-      // Invalidate size after layout completes
+      // Handle resize and dimension recalculations
       setTimeout(() => {
         map.invalidateSize(true);
       }, 100);
@@ -116,9 +119,18 @@ export function MapView({
     } catch (err) {
       console.error("Error creating Leaflet map instance:", err);
     }
-  }, [isLeafletReady, userLat, userLng]);
+  }, [isLeafletReady]);
 
-  // Update Markers & Polylines whenever donations, ngos, or user location changes
+  // 3. Pan to user's location when detected
+  useEffect(() => {
+    if (!mapInstanceRef.current || !userLat || !userLng) return;
+    if (!initialCenterDoneRef.current) {
+      initialCenterDoneRef.current = true;
+      mapInstanceRef.current.flyTo([userLat, userLng], 14, { duration: 1.5 });
+    }
+  }, [userLat, userLng]);
+
+  // 4. Update all Pins (User Live Location, Food Donations, and NGOs)
   useEffect(() => {
     if (!mapInstanceRef.current) return;
     const L = (window as any).L;
@@ -126,85 +138,103 @@ export function MapView({
 
     const map = mapInstanceRef.current;
 
-    // Clear previous markers and polyline
+    // Clear previous markers
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
+    if (userMarkerRef.current) {
+      userMarkerRef.current.remove();
+      userMarkerRef.current = null;
+    }
     if (polylineRef.current) {
       polylineRef.current.remove();
       polylineRef.current = null;
     }
 
-    // 1. User / Donor Pin
+    // ─── A. USER'S LIVE CURRENT LOCATION PIN ───────────────────────────
     if (userLat && userLng) {
       const userHtml = showTracking
-        ? `<div class="relative flex items-center justify-center" style="width:38px;height:38px;">
-            <div style="width:38px;height:38px;border-radius:50%;background:#ef4444;border:3px solid #ffffff;box-shadow:0 4px 14px rgba(239,68,68,0.4);display:flex;align-items:center;justify-content:center;font-size:18px;">🏪</div>
+        ? `<div class="relative flex items-center justify-center" style="width:40px;height:40px;">
+            <div style="width:38px;height:38px;border-radius:50%;background:#ef4444;border:3px solid #ffffff;box-shadow:0 4px 14px rgba(239,68,68,0.5);display:flex;align-items:center;justify-content:center;font-size:18px;">🏪</div>
           </div>`
-        : `<div class="relative flex items-center justify-center" style="width:32px;height:32px;">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60"></span>
-            <div style="position:relative;width:20px;height:20px;border-radius:50%;background:#10b981;border:3px solid #ffffff;box-shadow:0 2px 10px rgba(16,185,129,0.5);"></div>
+        : `<div class="relative flex items-center justify-center" style="width:44px;height:44px;">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-70"></span>
+            <span class="animate-pulse absolute inline-flex h-8 w-8 rounded-full bg-blue-400 opacity-50"></span>
+            <div style="position:relative;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);border:3.5px solid #ffffff;box-shadow:0 2px 14px rgba(37,99,235,0.6);display:flex;align-items:center;justify-content:center;z-index:10;">
+              <div style="width:8px;height:8px;border-radius:50%;background:#ffffff;"></div>
+            </div>
           </div>`;
 
       const userIcon = L.divIcon({
         html: userHtml,
-        iconSize: showTracking ? [38, 38] : [32, 32],
-        iconAnchor: showTracking ? [19, 19] : [16, 16],
+        iconSize: showTracking ? [40, 40] : [44, 44],
+        iconAnchor: showTracking ? [20, 20] : [22, 22],
         className: "custom-leaflet-pin",
       });
 
-      const userMarker = L.marker([userLat, userLng], { icon: userIcon })
+      const userPopup = `
+        <div style="font-family:system-ui;padding:6px 2px;min-width:180px;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2563eb;"></span>
+            <strong style="font-size:14px;color:#1e3a8a;">${showTracking ? 'Pickup Spot (You)' : 'Aapki Live Location (You)'}</strong>
+          </div>
+          <p style="font-size:12px;color:#475569;margin:0 0 4px;">📍 GPS: ${userLat.toFixed(4)}, ${userLng.toFixed(4)}</p>
+          <span style="display:inline-block;background:#eff6ff;color:#1d4ed8;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;">
+            🟢 LIVE GPS ACTIVE
+          </span>
+        </div>
+      `;
+
+      const userMarker = L.marker([userLat, userLng], { icon: userIcon, zIndexOffset: 1000 })
         .addTo(map)
-        .bindPopup(
-          `<div style="font-family:system-ui;padding:4px 2px;">
-            <p style="font-weight:800;font-size:13px;margin:0 0 2px;color:#047857;">${showTracking ? 'Pickup Point (Your Location)' : 'Your Current Location'}</p>
-            <p style="font-size:11px;color:#6b7280;margin:0;">GPS Lat: ${userLat.toFixed(4)}, Lng: ${userLng.toFixed(4)}</p>
-          </div>`
-        );
+        .bindPopup(userPopup);
+
+      userMarkerRef.current = userMarker;
       markersRef.current.push(userMarker);
     }
 
-    // 2. Food Donation Markers
+    // ─── B. FOOD DONATIONS PINS (Uploaded by ANY Donor) ───────────────
     donations.forEach((d) => {
       if (!d.latitude || !d.longitude) return;
 
       const isAvailable = d.status === "available";
-      const isRecent = Date.now() - new Date(d.created_at).getTime() < 3600000; // within 1 hour
+      const isRecent = Date.now() - new Date(d.created_at).getTime() < 86400000; // 24 hours
 
       const donationHtml = `
-        <div class="relative flex items-center justify-center cursor-pointer group" style="width:42px;height:42px;">
+        <div class="relative flex items-center justify-center cursor-pointer group" style="width:46px;height:46px;">
           ${isRecent ? '<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-80"></span>' : ''}
-          <div style="position:relative;width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg, #f59e0b 0%, #d97706 100%);border:3px solid #ffffff;box-shadow:0 6px 16px rgba(217,119,6,0.45);display:flex;align-items:center;justify-content:center;font-size:18px;transition:transform 0.2s ease;">
+          <div style="position:relative;width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg, #f59e0b 0%, #d97706 100%);border:3px solid #ffffff;box-shadow:0 6px 16px rgba(217,119,6,0.5);display:flex;align-items:center;justify-content:center;font-size:19px;transition:transform 0.2s ease;">
             🍱
           </div>
-          ${isRecent ? '<span style="position:absolute;top:-4px;right:-4px;background:#ef4444;color:#ffffff;font-size:9px;font-weight:900;padding:1px 5px;border-radius:999px;border:1.5px solid #ffffff;box-shadow:0 1px 4px rgba(0,0,0,0.3);">NEW</span>' : ''}
+          ${isRecent ? '<span style="position:absolute;top:-4px;right:-4px;background:#ef4444;color:#ffffff;font-size:9px;font-weight:900;padding:1px 5px;border-radius:999px;border:1.5px solid #ffffff;box-shadow:0 1px 4px rgba(0,0,0,0.3);">LIVE</span>' : ''}
         </div>
       `;
 
       const donationIcon = L.divIcon({
         html: donationHtml,
-        iconSize: [42, 42],
-        iconAnchor: [21, 21],
+        iconSize: [46, 46],
+        iconAnchor: [23, 23],
         className: "custom-leaflet-pin",
       });
 
       const popupHtml = `
-        <div style="font-family:system-ui;min-width:210px;padding:6px 2px;color:#1e293b;">
+        <div style="font-family:system-ui;min-width:220px;padding:6px 2px;color:#1e293b;">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;">
             <span style="font-weight:800;font-size:15px;color:#0f172a;line-height:1.2;">${d.food_type}</span>
             <span style="background:${isAvailable ? '#ecfdf5' : '#fef3c7'};color:${isAvailable ? '#059669' : '#d97706'};font-size:10px;font-weight:800;padding:2px 7px;border-radius:999px;text-transform:uppercase;">
               ${d.status}
             </span>
           </div>
-          <p style="font-size:12px;font-weight:600;color:#475569;margin:0 0 4px;display:flex;align-items:center;gap:4px;">
+          <p style="font-size:12px;font-weight:700;color:#475569;margin:0 0 4px;display:flex;align-items:center;gap:4px;">
             <span>📦 Quantity:</span> <span style="color:#0f172a;">${d.quantity}</span>
           </p>
-          <p style="font-size:12px;color:#64748b;margin:0 0 4px;line-height:1.3;">
+          ${d.description ? `<p style="font-size:11px;color:#64748b;margin:0 0 4px;font-style:italic;">"${d.description}"</p>` : ''}
+          <p style="font-size:12px;color:#475569;margin:0 0 4px;line-height:1.3;">
             <span>📍</span> ${d.pickup_address}
           </p>
           <p style="font-size:11px;color:#0284c7;font-weight:600;margin:0 0 4px;">
             <span>⏰</span> ${formatWindow(d.pickup_window_start, d.pickup_window_end)}
           </p>
-          ${d.contact_phone ? `<p style="font-size:11px;color:#64748b;margin:0;">📞 ${d.contact_phone}</p>` : ''}
+          ${d.contact_phone ? `<p style="font-size:11px;color:#059669;font-weight:700;margin:4px 0 0;">📞 ${d.contact_phone}</p>` : ''}
         </div>
       `;
 
@@ -218,7 +248,7 @@ export function MapView({
       markersRef.current.push(marker);
     });
 
-    // 3. NGO / Shelter Markers
+    // ─── C. NGO / SHELTER PINS ─────────────────────────────────────────
     ngos.forEach((ngo) => {
       if (!ngo.latitude || !ngo.longitude) return;
 
@@ -227,21 +257,21 @@ export function MapView({
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <div style="position:relative;width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg, #10b981 0%, #059669 100%);border:3px solid #ffffff;box-shadow:0 6px 16px rgba(5,150,105,0.45);display:flex;align-items:center;justify-content:center;font-size:18px;z-index:10;">🛵</div>
           </div>`
-        : `<div class="relative flex items-center justify-center cursor-pointer" style="width:38px;height:38px;">
+        : `<div class="relative flex items-center justify-center cursor-pointer" style="width:40px;height:40px;">
             <div style="position:relative;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg, #10b981 0%, #047857 100%);border:3px solid #ffffff;box-shadow:0 4px 14px rgba(4,120,87,0.35);display:flex;align-items:center;justify-content:center;font-size:17px;">🏥</div>
           </div>`;
 
       const ngoIcon = L.divIcon({
         html: ngoHtml,
-        iconSize: showTracking ? [44, 44] : [38, 38],
-        iconAnchor: showTracking ? [22, 22] : [19, 19],
+        iconSize: showTracking ? [44, 44] : [40, 40],
+        iconAnchor: showTracking ? [22, 22] : [20, 20],
         className: "custom-leaflet-pin",
       });
 
       const ngoPopupHtml = `
         <div style="font-family:system-ui;min-width:200px;padding:6px 2px;color:#1e293b;">
           <p style="font-weight:800;font-size:14px;margin:0 0 4px;color:#065f46;">
-            ${ngo.org_name || ngo.full_name || "Verified Community Rescue NGO"}
+            ${ngo.org_name || ngo.full_name || "Verified Community Rescue Center"}
           </p>
           <p style="font-size:12px;color:#475569;margin:0 0 4px;">
             📞 Contact: <strong>${ngo.phone || "Verified Partner"}</strong>
@@ -263,7 +293,7 @@ export function MapView({
       }
       markersRef.current.push(marker);
 
-      // Connect user and NGO with dashed path in tracking mode
+      // Tracking polyline
       if (showTracking && userLat && userLng) {
         polylineRef.current = L.polyline(
           [
@@ -281,15 +311,15 @@ export function MapView({
       }
     });
 
-    // Fit bounds automatically if multiple markers exist
-    if (markersRef.current.length > 0) {
+    // ─── D. AUTO FIT BOUNDS ─────────────────────────────────────────────
+    if (markersRef.current.length > 1 && !initialCenterDoneRef.current) {
       try {
         const groupElements = [...markersRef.current];
         if (polylineRef.current) groupElements.push(polylineRef.current);
         const group = L.featureGroup(groupElements);
-        map.fitBounds(group.getBounds().pad(0.25), { maxZoom: 15 });
+        map.fitBounds(group.getBounds().pad(0.2), { maxZoom: 15 });
       } catch {
-        // Safe fallback for single point or identical coords
+        // ignore
       }
     }
   }, [donations, ngos, userLat, userLng, onMarkerClick, onNgoClick, showTracking]);
@@ -310,7 +340,7 @@ export function MapView({
         if (mapInstanceRef.current) {
           mapInstanceRef.current.flyTo(
             [pos.coords.latitude, pos.coords.longitude],
-            14,
+            15,
             { duration: 1.2 }
           );
         }
@@ -326,20 +356,20 @@ export function MapView({
     if (!L) return;
     try {
       const group = L.featureGroup(markersRef.current);
-      mapInstanceRef.current.fitBounds(group.getBounds().pad(0.25), { maxZoom: 15 });
+      mapInstanceRef.current.fitBounds(group.getBounds().pad(0.2), { maxZoom: 15 });
     } catch {
       // ignore
     }
   }, []);
 
   return (
-    <div className="relative w-full h-full min-h-[380px] rounded-2xl overflow-hidden bg-emerald-950/10">
+    <div className="relative w-full h-full min-h-[400px] rounded-2xl overflow-hidden bg-emerald-950/10">
       {/* Loading state before Leaflet is ready */}
       {!isLeafletReady && !loadError && (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-card/80 backdrop-blur-sm">
           <Loader2 className="w-8 h-8 animate-spin text-primary mb-3" />
           <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-            Initializing Live Map Telemetry...
+            Initializing Live Satellite Map...
           </p>
         </div>
       )}
@@ -362,10 +392,10 @@ export function MapView({
         <button
           type="button"
           onClick={handleLocateMe}
-          title="Center on My Location"
-          className="w-9 h-9 rounded-xl bg-background/95 hover:bg-background text-foreground border border-border/70 shadow-lg backdrop-blur-md flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+          title="Center on My Live Location"
+          className="w-10 h-10 rounded-xl bg-background/95 hover:bg-background text-foreground border border-border/80 shadow-lg backdrop-blur-md flex items-center justify-center transition-all hover:scale-105 active:scale-95 group"
         >
-          <Locate className="w-4 h-4 text-emerald-600" />
+          <Locate className="w-5 h-5 text-blue-600 group-hover:animate-pulse" />
         </button>
 
         {markersRef.current.length > 1 && (
@@ -373,9 +403,9 @@ export function MapView({
             type="button"
             onClick={handleResetBounds}
             title="Fit All Food & Rescue Pins"
-            className="w-9 h-9 rounded-xl bg-background/95 hover:bg-background text-foreground border border-border/70 shadow-lg backdrop-blur-md flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+            className="w-10 h-10 rounded-xl bg-background/95 hover:bg-background text-foreground border border-border/80 shadow-lg backdrop-blur-md flex items-center justify-center transition-all hover:scale-105 active:scale-95"
           >
-            <Compass className="w-4 h-4 text-primary" />
+            <Compass className="w-5 h-5 text-primary" />
           </button>
         )}
       </div>
@@ -400,7 +430,7 @@ export function MapView({
       </div>
 
       {/* Map DOM Container */}
-      <div ref={mapContainerRef} className="w-full h-full min-h-[380px] z-0" />
+      <div ref={mapContainerRef} className="w-full h-full min-h-[400px] z-0" />
     </div>
   );
 }
