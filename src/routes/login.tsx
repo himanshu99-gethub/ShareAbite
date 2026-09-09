@@ -123,7 +123,7 @@ function BrandPanel() {
   ];
 
   return (
-    <div className="hidden lg:flex flex-col justify-between p-10 relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-900 via-emerald-950 to-[#071a0e] min-h-full">
+    <div className="hidden lg:flex flex-col justify-between p-6 lg:p-7 relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-900 via-emerald-950 to-[#071a0e] min-h-full">
       {/* Decorative orbs */}
       <div className="absolute top-[-80px] right-[-60px] w-72 h-72 rounded-full bg-emerald-500/15 blur-[80px] pointer-events-none" />
       <div className="absolute bottom-[-60px] left-[-40px] w-56 h-56 rounded-full bg-amber-400/10 blur-[70px] pointer-events-none" />
@@ -131,33 +131,33 @@ function BrandPanel() {
 
       {/* Top: Logo */}
       <div className="relative z-10">
-        <div className="flex items-center gap-2.5 mb-8">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg border border-white/20">
-            <Leaf className="w-4.5 h-4.5 text-white" />
+        <div className="flex items-center gap-2 mb-3.5">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg border border-white/20">
+            <Leaf className="w-4 h-4 text-white" />
           </div>
-          <span className="text-xl font-bold text-white">
+          <span className="text-lg font-bold text-white">
             Share<span className="text-emerald-400">A</span>Bite
           </span>
         </div>
 
-        <h2 className="text-3xl font-bold text-white leading-tight">
+        <h2 className="text-2xl lg:text-[1.65rem] font-bold text-white leading-tight">
           Fight hunger.
           <br />
           <span className="text-emerald-400">One meal</span> at a time.
         </h2>
-        <p className="mt-4 text-sm text-white/60 leading-relaxed max-w-xs">
+        <p className="mt-2 text-xs text-white/65 leading-relaxed max-w-xs">
           Connect your surplus food with NGOs and shelters nearby.
           Real-time, zero cost, massive impact.
         </p>
       </div>
 
       {/* Middle: Auto-Rotating Testimonial */}
-      <div className="relative z-10 my-auto">
-        <div className={`bg-white/8 border border-white/12 rounded-2xl p-5 backdrop-blur-sm transition-opacity duration-500 ${fade ? "opacity-100" : "opacity-0"}`}>
-          <div className="flex items-center justify-between gap-2 mb-3">
-            <div className="flex gap-1">
+      <div className="relative z-10 my-3">
+        <div className={`bg-white/8 border border-white/12 rounded-xl p-3.5 backdrop-blur-sm transition-opacity duration-500 ${fade ? "opacity-100" : "opacity-0"}`}>
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex gap-0.5">
               {[...Array(5)].map((_, i) => (
-                <span key={i} className="text-amber-400 text-sm">★</span>
+                <span key={i} className="text-amber-400 text-xs">★</span>
               ))}
             </div>
             {/* Dots navigation */}
@@ -173,37 +173,37 @@ function BrandPanel() {
                     }, 200);
                   }}
                   className={`h-1.5 rounded-full transition-all ${
-                    idx === (currentIndex % 5) ? "w-4 bg-emerald-400" : "w-1.5 bg-white/30"
+                    idx === (currentIndex % 5) ? "w-3.5 bg-emerald-400" : "w-1.5 bg-white/30"
                   }`}
                 />
               ))}
             </div>
           </div>
 
-          <p className="text-sm text-white/80 leading-relaxed italic min-h-[44px]">
+          <p className="text-xs text-white/85 leading-relaxed italic min-h-[36px]">
             "{activeReview.quote}"
           </p>
 
-          <div className="flex items-center gap-2.5 mt-4 pt-3 border-t border-white/10">
+          <div className="flex items-center gap-2 mt-2.5 pt-2 border-t border-white/10">
             <img
               src={activeReview.avatar}
               alt={activeReview.name}
-              className="w-8 h-8 rounded-full border border-white/20 object-cover"
+              className="w-7 h-7 rounded-full border border-white/20 object-cover"
             />
             <div>
               <p className="text-xs font-bold text-white">{activeReview.name}</p>
-              <p className="text-[11px] text-white/50">{activeReview.role}</p>
+              <p className="text-[10px] text-white/50">{activeReview.role}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Bottom: Live Real Stats */}
-      <div className="relative z-10 flex items-center gap-6">
+      <div className="relative z-10 flex items-center gap-5">
         {statsDisplay.map((s) => (
           <div key={s.label}>
-            <p className="text-xl font-bold text-white">{s.value}</p>
-            <p className="text-xs text-white/50">{s.label}</p>
+            <p className="text-lg font-bold text-white">{s.value}</p>
+            <p className="text-[10px] text-white/50">{s.label}</p>
           </div>
         ))}
       </div>
@@ -532,67 +532,67 @@ function LoginPage() {
   };
 
   // ── Shared input field style ──
-  const inputCls = "w-full rounded-xl border border-input bg-background pl-11 pr-4 py-2.5 sm:py-3 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all placeholder:text-muted-foreground/70";
+  const inputCls = "w-full rounded-xl border border-input bg-background pl-9 pr-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all placeholder:text-muted-foreground/70";
   const submitBtnCls = (isLoading: boolean) =>
-    `w-full rounded-xl py-3 text-sm font-bold text-white transition-all duration-200 active:scale-[0.98] disabled:opacity-40 shadow-lg flex items-center justify-center gap-2 ${
+    `w-full rounded-xl py-2.5 text-xs sm:text-sm font-bold text-white transition-all duration-200 active:scale-[0.98] disabled:opacity-40 shadow-md flex items-center justify-center gap-2 ${
       isDonor ? "bg-primary hover:bg-primary/90 shadow-primary/20" : "bg-accent hover:bg-accent/90 shadow-accent/20"
     } ${isLoading ? "pointer-events-none" : ""}`;
 
   return (
-    <div className="relative min-h-[100dvh] w-full overflow-x-hidden bg-[#02150e] text-foreground flex flex-col items-center justify-center p-3 sm:p-6 lg:p-10">
+    <div className="relative min-h-[100dvh] w-full overflow-hidden bg-[#02150e] text-foreground flex flex-col items-center justify-center p-2 sm:p-4">
       {/* 3D Interactive Spatial Particle Background */}
       <Login3dBackground />
 
       {/* Floating Back to Home Pill Button */}
       <Link
         to="/"
-        className="fixed top-5 left-5 z-20 hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-950/75 border border-white/15 text-white/85 hover:text-white hover:bg-emerald-900/80 backdrop-blur-xl text-xs font-semibold shadow-lg transition-all duration-300 active:scale-[0.97]"
+        className="fixed top-4 left-4 z-20 hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-950/75 border border-white/15 text-white/85 hover:text-white hover:bg-emerald-900/80 backdrop-blur-xl text-xs font-semibold shadow-lg transition-all duration-300 active:scale-[0.97]"
       >
         <ArrowLeft className="w-3.5 h-3.5" />
         <span>Back to Home</span>
       </Link>
 
       {/* Double-Bezel Card Container */}
-      <div className="relative z-10 w-full max-w-[440px] lg:max-w-[940px] mx-auto my-auto p-1.5 sm:p-2 rounded-[2.25rem] bg-white/[0.04] border border-white/10 ring-1 ring-white/10 shadow-[0_25px_70px_-15px_rgba(0,0,0,0.85)] backdrop-blur-2xl animate-fade-up-blur">
-        <div className="w-full grid lg:grid-cols-[1fr_1fr] rounded-[calc(2.25rem-0.375rem)] overflow-hidden border border-white/10 bg-card/95 backdrop-blur-xl">
+      <div className="relative z-10 w-full max-w-[420px] lg:max-w-[880px] mx-auto my-auto p-1 sm:p-1.5 rounded-[1.75rem] bg-white/[0.04] border border-white/10 ring-1 ring-white/10 shadow-[0_25px_70px_-15px_rgba(0,0,0,0.85)] backdrop-blur-2xl animate-fade-up-blur">
+        <div className="w-full grid lg:grid-cols-[1fr_1fr] rounded-[calc(1.75rem-0.25rem)] overflow-hidden border border-white/10 bg-card/95 backdrop-blur-xl">
 
         {/* Left brand panel */}
         <BrandPanel />
 
         {/* Right form panel */}
-        <div className="bg-card p-5 sm:p-8 md:p-10 flex flex-col justify-center min-h-[500px] sm:min-h-[580px] w-full">
+        <div className="bg-card p-4 sm:p-6 lg:p-6 flex flex-col justify-center w-full">
           {/* Mobile logo */}
-          <Link to="/" className="flex items-center justify-center gap-2.5 mb-6 sm:mb-8 lg:hidden hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-emerald-600 flex items-center justify-center shadow-md border border-primary/20">
-              <Leaf className="w-4 h-4 text-white" />
+          <Link to="/" className="flex items-center justify-center gap-2 mb-3 lg:hidden hover:opacity-80 transition-opacity">
+            <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-primary to-emerald-600 flex items-center justify-center shadow-md border border-primary/20">
+              <Leaf className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="text-lg font-bold text-foreground">
+            <span className="text-base font-bold text-foreground">
               Share<span className="text-primary">A</span>Bite
             </span>
           </Link>
 
           {/* ── FORGOT PASSWORD ── */}
           {authMode === "forgot_password" ? (
-            <div className="space-y-5 animate-fade-in">
+            <div className="space-y-3.5 animate-fade-in">
               <button
                 type="button"
                 onClick={() => { setAuthMode("signin"); setResetStep("request"); }}
-                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground font-medium"
+                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-medium"
               >
                 <ArrowLeft className="w-3.5 h-3.5" /> Back to Sign In
               </button>
 
-              <div className="mb-2">
-                <h1 className="text-2xl font-bold text-foreground tracking-tight">Reset Password</h1>
-                <p className="text-sm text-muted-foreground mt-1.5">
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">Reset Password</h1>
+                <p className="text-xs text-muted-foreground mt-0.5">
                   {resetStep === "request" ? "Enter your email to receive a reset code" : "Enter the OTP and your new password"}
                 </p>
               </div>
 
               {resetStep === "request" ? (
-                <form onSubmit={handleRequestPasswordReset} className="space-y-4">
+                <form onSubmit={handleRequestPasswordReset} className="space-y-3">
                   <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                     <input
                       type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                       placeholder="Enter registered email"
@@ -600,17 +600,17 @@ function LoginPage() {
                     />
                   </div>
                   <button type="submit" disabled={resetLoading || !email.trim()} className={submitBtnCls(resetLoading)}>
-                    {resetLoading ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending...</> : <><Send className="w-4 h-4" /> Send Reset Code</>}
+                    {resetLoading ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Sending...</> : <><Send className="w-3.5 h-3.5" /> Send Reset Code</>}
                   </button>
                 </form>
               ) : (
-                <form onSubmit={handleConfirmPasswordReset} className="space-y-4">
+                <form onSubmit={handleConfirmPasswordReset} className="space-y-3">
                   <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <input type="email" value={email} readOnly className="w-full rounded-xl border border-input bg-muted/40 pl-11 pr-4 py-3 text-sm text-muted-foreground cursor-not-allowed" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                    <input type="email" value={email} readOnly className="w-full rounded-xl border border-input bg-muted/40 pl-9 pr-3 py-2 text-xs sm:text-sm text-muted-foreground cursor-not-allowed" />
                   </div>
                   <div className="relative">
-                    <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                     <input
                       type="text" value={resetOtp} onChange={(e) => setResetOtp(e.target.value)}
                       placeholder="6-digit OTP code" maxLength={6}
@@ -618,19 +618,19 @@ function LoginPage() {
                     />
                   </div>
                   <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                     <input
                       type={showNewPassword ? "text" : "password"}
                       value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="New password (min. 6 chars)"
-                      className={`${inputCls} pr-11`} required minLength={6}
+                      className={`${inputCls} pr-9`} required minLength={6}
                     />
-                    <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                      {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                      {showNewPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                     </button>
                   </div>
                   <button type="submit" disabled={resetLoading || resetOtp.length !== 6 || newPassword.length < 6} className={submitBtnCls(resetLoading)}>
-                    {resetLoading ? <><Loader2 className="w-4 h-4 animate-spin" /> Resetting...</> : <><CheckCircle2 className="w-4 h-4" /> Update Password & Login</>}
+                    {resetLoading ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Resetting...</> : <><CheckCircle2 className="w-3.5 h-3.5" /> Update Password & Login</>}
                   </button>
                 </form>
               )}
@@ -645,13 +645,13 @@ function LoginPage() {
 
           ) : (
             /* ── MAIN AUTH FORM ── */
-            <div className="space-y-5 animate-fade-in">
+            <div className="space-y-3 sm:space-y-3.5 animate-fade-in">
               {/* Tab: Sign in / Sign up */}
-              <div className="flex bg-muted/60 p-1 rounded-xl gap-1">
+              <div className="flex bg-muted/60 p-0.5 rounded-xl gap-1">
                 {(["signin", "signup"] as const).map((m) => (
                   <button
                     key={m} type="button" onClick={() => setAuthMode(m)}
-                    className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${
+                    className={`flex-1 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 ${
                       authMode === m ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
@@ -662,13 +662,13 @@ function LoginPage() {
 
               {/* Header */}
               <div>
-                <h1 className="text-2xl font-bold text-foreground tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
                   {authMode === "signup"
-                    ? isDonor ? "Register as Donor 🍽️" : "Register as NGO 🏠"
+                    ? isDonor ? "Register as Donor" : "Register as NGO"
                     : authMethod === "otp" ? "Email OTP Login"
-                    : isDonor ? "Welcome back 👋" : "NGO Login"}
+                    : isDonor ? "Welcome Back" : "NGO Sign In"}
                 </h1>
-                <p className="text-sm text-muted-foreground mt-1.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   {authMode === "signup"
                     ? isDonor ? "Share surplus food with nearby shelters" : "Find and rescue food for families in need"
                     : authMethod === "otp" ? "Secure passwordless email verification"
@@ -681,7 +681,7 @@ function LoginPage() {
                 {(["donor", "receiver"] as const).map((r) => (
                   <button
                     key={r} type="button" onClick={() => setRole(r)}
-                    className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 text-sm font-semibold transition-all duration-200 ${
+                    className={`flex items-center justify-center gap-2 py-2 px-2 rounded-xl border-2 text-xs font-semibold transition-all duration-200 ${
                       role === r
                         ? r === "donor"
                           ? "border-primary bg-primary/6 text-primary"
@@ -690,19 +690,19 @@ function LoginPage() {
                     }`}
                   >
                     {r === "donor"
-                      ? <UtensilsCrossed className="w-4 h-4" />
-                      : <Building2 className="w-4 h-4" />}
-                    <span className="text-xs">{r === "donor" ? "Restaurant / Donor" : "NGO / Shelter"}</span>
+                      ? <UtensilsCrossed className="w-3.5 h-3.5" />
+                      : <Building2 className="w-3.5 h-3.5" />}
+                    <span className="text-[11px]">{r === "donor" ? "Donor" : "NGO / Shelter"}</span>
                   </button>
                 ))}
               </div>
 
               {/* Auth method tabs (sign-in only) */}
               {authMode === "signin" && (
-                <div className="grid grid-cols-2 gap-1 p-1 bg-muted/50 rounded-xl text-xs font-semibold">
+                <div className="grid grid-cols-2 gap-1 p-0.5 bg-muted/50 rounded-xl text-xs font-semibold">
                   {(["password", "otp"] as const).map((m) => (
                     <button key={m} type="button" onClick={() => setAuthMethod(m)}
-                      className={`py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
+                      className={`py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
                         authMethod === m ? "bg-card text-foreground shadow-sm font-bold" : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
@@ -715,9 +715,9 @@ function LoginPage() {
               {/* Google OAuth */}
               <button
                 type="button" onClick={handleGoogleSignIn} disabled={googleLoading}
-                className="w-full flex items-center justify-center gap-3 rounded-xl border border-input bg-background py-3 text-sm font-medium hover:bg-muted/30 transition-all disabled:opacity-40 shadow-sm"
+                className="w-full flex items-center justify-center gap-2.5 rounded-xl border border-input bg-background py-2 text-xs sm:text-sm font-medium hover:bg-muted/30 transition-all disabled:opacity-40 shadow-sm"
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
                   <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -727,17 +727,17 @@ function LoginPage() {
               </button>
 
               {/* Divider */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 py-0.5">
                 <div className="flex-1 h-px bg-border/60" />
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">or</span>
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">or</span>
                 <div className="flex-1 h-px bg-border/60" />
               </div>
 
               {/* ── Sign Up Form ── */}
               {authMode === "signup" ? (
-                <form onSubmit={handleSignUpSubmit} className="space-y-3">
+                <form onSubmit={handleSignUpSubmit} className="space-y-2.5">
                   <div className="relative">
-                    <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                     <input
                       type="text" value={fullName} onChange={(e) => setFullName(e.target.value)}
                       placeholder="Full Name / Organisation Name"
@@ -745,7 +745,7 @@ function LoginPage() {
                     />
                   </div>
                   <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                     <input
                       type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                       placeholder="Email Address"
@@ -753,27 +753,27 @@ function LoginPage() {
                     />
                   </div>
                   <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                     <input
                       type={showPassword ? "text" : "password"} value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Create Password (min 6 chars)"
-                      className={`${inputCls} pr-11`} required minLength={6}
+                      className={`${inputCls} pr-9`} required minLength={6}
                     />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                      {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                     </button>
                   </div>
                   <button type="submit" disabled={otpSending || !fullName.trim() || !email.trim() || password.length < 6} className={submitBtnCls(otpSending)}>
-                    {otpSending ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending OTP...</> : <><Send className="w-4 h-4" /> Create Account via OTP</>}
+                    {otpSending ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Sending OTP...</> : <><Send className="w-3.5 h-3.5" /> Create Account via OTP</>}
                   </button>
                 </form>
 
               /* ── OTP Login ── */
               ) : authMethod === "otp" ? (
-                <form onSubmit={handleSendOtp} className="space-y-3">
+                <form onSubmit={handleSendOtp} className="space-y-2.5">
                   <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                     <input
                       type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                       placeholder="Enter email address"
@@ -781,15 +781,15 @@ function LoginPage() {
                     />
                   </div>
                   <button type="submit" disabled={otpSending || !email.trim()} className={submitBtnCls(otpSending)}>
-                    {otpSending ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending OTP...</> : <><Send className="w-4 h-4" /> Send OTP Code</>}
+                    {otpSending ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Sending OTP...</> : <><Send className="w-3.5 h-3.5" /> Send OTP Code</>}
                   </button>
                 </form>
 
               /* ── Password Login ── */
               ) : (
-                <form onSubmit={handlePasswordSignIn} className="space-y-3">
+                <form onSubmit={handlePasswordSignIn} className="space-y-2.5">
                   <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                     <input
                       type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                       placeholder="Email"
@@ -797,36 +797,36 @@ function LoginPage() {
                     />
                   </div>
                   <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                     <input
                       type={showPassword ? "text" : "password"} value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Password"
-                      className={`${inputCls} pr-11`} required
+                      className={`${inputCls} pr-9`} required
                     />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                      {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                     </button>
                   </div>
                   <div className="text-right">
                     <button
                       type="button"
                       onClick={() => { setAuthMode("forgot_password"); setResetStep("request"); }}
-                      className="text-xs font-semibold text-primary hover:text-primary/80 hover:underline transition-colors"
+                      className="text-[11px] font-semibold text-primary hover:text-primary/80 hover:underline transition-colors"
                     >
                       Forgot Password?
                     </button>
                   </div>
                   <button type="submit" disabled={loading} className={submitBtnCls(loading)}>
                     {loading
-                      ? <><Loader2 className="w-4 h-4 animate-spin" /> Signing in...</>
-                      : <>Sign In <ArrowRight className="w-4 h-4" /></>}
+                      ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Signing in...</>
+                      : <>Sign In <ArrowRight className="w-3.5 h-3.5" /></>}
                   </button>
                 </form>
               )}
 
               {/* Switch mode link */}
-              <p className="text-center text-sm text-muted-foreground pt-1">
+              <p className="text-center text-xs text-muted-foreground pt-0.5">
                 {authMode === "signup" ? "Already have an account?" : "Don't have an account?"}{" "}
                 <button
                   type="button"
