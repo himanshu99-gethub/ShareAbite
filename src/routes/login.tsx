@@ -539,18 +539,22 @@ function LoginPage() {
     } ${isLoading ? "pointer-events-none" : ""}`;
 
   return (
-    <div className="relative min-h-[100dvh] w-full overflow-x-hidden bg-background flex flex-col items-center justify-center p-3 sm:p-6 lg:p-10">
+    <div className="relative min-h-[100dvh] w-full overflow-x-hidden bg-[#02150e] text-foreground flex flex-col items-center justify-center p-3 sm:p-6 lg:p-10">
       {/* 3D Interactive Spatial Particle Background */}
       <Login3dBackground />
 
-      {/* Decorative ambient gradients (strictly bounded) */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-0 w-72 h-72 rounded-full bg-primary/5 -translate-x-1/2 -translate-y-1/2 blur-[80px]" />
-        <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-accent/6 translate-x-1/4 translate-y-1/4 blur-[90px]" />
-      </div>
+      {/* Floating Back to Home Pill Button */}
+      <Link
+        to="/"
+        className="fixed top-5 left-5 z-20 hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-950/75 border border-white/15 text-white/85 hover:text-white hover:bg-emerald-900/80 backdrop-blur-xl text-xs font-semibold shadow-lg transition-all duration-300 active:scale-[0.97]"
+      >
+        <ArrowLeft className="w-3.5 h-3.5" />
+        <span>Back to Home</span>
+      </Link>
 
-      {/* Card container - strictly centered on mobile and desktop */}
-      <div className="relative z-10 w-full max-w-[440px] lg:max-w-[920px] mx-auto my-auto grid lg:grid-cols-[1fr_1fr] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-border/60 bg-card/95 backdrop-blur-xl animate-fade-up-blur">
+      {/* Double-Bezel Card Container */}
+      <div className="relative z-10 w-full max-w-[440px] lg:max-w-[940px] mx-auto my-auto p-1.5 sm:p-2 rounded-[2.25rem] bg-white/[0.04] border border-white/10 ring-1 ring-white/10 shadow-[0_25px_70px_-15px_rgba(0,0,0,0.85)] backdrop-blur-2xl animate-fade-up-blur">
+        <div className="w-full grid lg:grid-cols-[1fr_1fr] rounded-[calc(2.25rem-0.375rem)] overflow-hidden border border-white/10 bg-card/95 backdrop-blur-xl">
 
         {/* Left brand panel */}
         <BrandPanel />
@@ -837,5 +841,6 @@ function LoginPage() {
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 }
