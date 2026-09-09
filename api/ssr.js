@@ -370,6 +370,13 @@ export default async function handler(req, res) {
       }
     }
 
+    // Google Search Console Verification
+    if (pathname === "/google9cd0d95a707675ba.html") {
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      return res.end("google-site-verification: google9cd0d95a707675ba.html\n");
+    }
+
     // Direct /auth/* API Router Handler
     if (pathname.startsWith("/auth/")) {
       const authResult = await handleAuthRoute(pathname, bodyJson);
