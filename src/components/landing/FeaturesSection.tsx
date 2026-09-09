@@ -17,10 +17,10 @@ const features = [
     icon: UtensilsCrossed,
     tag: "Instant Posting",
     title: "Post a Donation in 60 Seconds",
-    desc: "Donors list surplus food with package type, exact servings, safe pickup window, and GPS address. Photos boost NGO response time by 3x.",
+    desc: "Donors list surplus food with package type, exact servings, safe pickup window, and GPS address. Verified photos boost NGO response time by 3x.",
     gradient: "from-emerald-500 to-teal-500",
     glow: "rgba(16, 185, 129, 0.25)",
-    span: "lg:col-span-2",
+    span: "col-span-1 md:col-span-7",
     has3dVisual: "cube",
   },
   {
@@ -30,7 +30,7 @@ const features = [
     desc: "Nearby NGOs see real-time pins categorized by food type, freshness timer, and driving distance.",
     gradient: "from-amber-500 to-orange-500",
     glow: "rgba(245, 158, 11, 0.25)",
-    span: "",
+    span: "col-span-1 md:col-span-5",
     has3dVisual: "radar",
   },
   {
@@ -40,17 +40,17 @@ const features = [
     desc: "NGOs request surplus with one tap. Donors receive immediate instant notifications to accept or schedule pickup.",
     gradient: "from-blue-500 to-indigo-500",
     glow: "rgba(99, 102, 241, 0.25)",
-    span: "",
+    span: "col-span-1 md:col-span-4",
     has3dVisual: null,
   },
   {
     icon: CheckCircle2,
-    tag: "Full Transparency",
+    tag: "Transparency",
     title: "Verified Verification Protocol",
     desc: "Secure contact verification, exact handoff directions, and digital verification codes protect every transaction.",
     gradient: "from-purple-500 to-pink-500",
     glow: "rgba(168, 85, 247, 0.25)",
-    span: "",
+    span: "col-span-1 md:col-span-4",
     has3dVisual: null,
   },
   {
@@ -60,7 +60,7 @@ const features = [
     desc: "Track status seamlessly: Available → Requested → Volunteer Dispatched → Safely Distributed.",
     gradient: "from-orange-500 to-red-500",
     glow: "rgba(249, 115, 22, 0.25)",
-    span: "",
+    span: "col-span-1 md:col-span-4",
     has3dVisual: null,
   },
   {
@@ -70,22 +70,34 @@ const features = [
     desc: "Both Donors and NGOs access rich analytics: kilograms of food saved, CO₂ offset, and meals delivered to verified families.",
     gradient: "from-pink-500 to-rose-500",
     glow: "rgba(244, 63, 94, 0.25)",
-    span: "lg:col-span-2",
+    span: "col-span-1 md:col-span-12",
     has3dVisual: "bars",
   },
 ];
 
-/* ── 3D CSS Rotating Cube Mini Visual ── */
+/* ── 3D CSS Rotating Cube Mini Visual with Refined SVG glyphs ── */
 function Rotating3DCube() {
   return (
-    <div className="w-16 h-16 relative perspective-1000 flex items-center justify-center pointer-events-none">
-      <div className="w-10 h-10 preserve-3d animate-cube-3d relative">
-        <div className="absolute inset-0 bg-emerald-500/80 border border-white/60 rounded-lg backdrop-blur-sm flex items-center justify-center text-[10px] font-bold text-white shadow-lg" style={{ transform: "translateZ(20px)" }}>🍱</div>
-        <div className="absolute inset-0 bg-emerald-600/80 border border-white/60 rounded-lg backdrop-blur-sm flex items-center justify-center text-[10px] font-bold text-white shadow-lg" style={{ transform: "rotateY(180deg) translateZ(20px)" }}>🥗</div>
-        <div className="absolute inset-0 bg-teal-500/80 border border-white/60 rounded-lg backdrop-blur-sm flex items-center justify-center text-[10px] font-bold text-white shadow-lg" style={{ transform: "rotateY(90deg) translateZ(20px)" }}>🥖</div>
-        <div className="absolute inset-0 bg-teal-600/80 border border-white/60 rounded-lg backdrop-blur-sm flex items-center justify-center text-[10px] font-bold text-white shadow-lg" style={{ transform: "rotateY(-90deg) translateZ(20px)" }}>🍲</div>
-        <div className="absolute inset-0 bg-emerald-400/80 border border-white/60 rounded-lg backdrop-blur-sm flex items-center justify-center text-[10px] font-bold text-white shadow-lg" style={{ transform: "rotateX(90deg) translateZ(20px)" }}>🍎</div>
-        <div className="absolute inset-0 bg-emerald-700/80 border border-white/60 rounded-lg backdrop-blur-sm flex items-center justify-center text-[10px] font-bold text-white shadow-lg" style={{ transform: "rotateX(-90deg) translateZ(20px)" }}>🍚</div>
+    <div className="w-14 h-14 relative perspective-1000 flex items-center justify-center pointer-events-none">
+      <div className="w-9 h-9 preserve-3d animate-cube-3d relative">
+        <div className="absolute inset-0 bg-emerald-500/85 border border-white/40 rounded-lg backdrop-blur-sm flex items-center justify-center text-white shadow-lg" style={{ transform: "translateZ(18px)" }}>
+          <UtensilsCrossed className="w-4 h-4" />
+        </div>
+        <div className="absolute inset-0 bg-emerald-600/85 border border-white/40 rounded-lg backdrop-blur-sm flex items-center justify-center text-white shadow-lg" style={{ transform: "rotateY(180deg) translateZ(18px)" }}>
+          <Sparkles className="w-4 h-4" />
+        </div>
+        <div className="absolute inset-0 bg-teal-500/85 border border-white/40 rounded-lg backdrop-blur-sm flex items-center justify-center text-white shadow-lg" style={{ transform: "rotateY(90deg) translateZ(18px)" }}>
+          <ShieldCheck className="w-4 h-4" />
+        </div>
+        <div className="absolute inset-0 bg-teal-600/85 border border-white/40 rounded-lg backdrop-blur-sm flex items-center justify-center text-white shadow-lg" style={{ transform: "rotateY(-90deg) translateZ(18px)" }}>
+          <Zap className="w-4 h-4" />
+        </div>
+        <div className="absolute inset-0 bg-emerald-400/85 border border-white/40 rounded-lg backdrop-blur-sm flex items-center justify-center text-white shadow-lg" style={{ transform: "rotateX(90deg) translateZ(18px)" }}>
+          <MapPin className="w-4 h-4" />
+        </div>
+        <div className="absolute inset-0 bg-emerald-700/85 border border-white/40 rounded-lg backdrop-blur-sm flex items-center justify-center text-white shadow-lg" style={{ transform: "rotateX(-90deg) translateZ(18px)" }}>
+          <CheckCircle2 className="w-4 h-4" />
+        </div>
       </div>
     </div>
   );
@@ -94,7 +106,7 @@ function Rotating3DCube() {
 /* ── Living Animated Bar Chart Visual ── */
 function LivingDataBars() {
   return (
-    <div className="flex items-end gap-1.5 h-12 px-3 py-1 bg-black/10 dark:bg-white/5 rounded-xl border border-border/40">
+    <div className="flex items-end gap-1.5 h-10 px-3 py-1 bg-black/5 dark:bg-white/5 rounded-xl border border-border/40">
       {[
         { h: "60%", delay: "0s" },
         { h: "95%", delay: "0.2s" },
@@ -104,7 +116,7 @@ function LivingDataBars() {
       ].map((bar, i) => (
         <div
           key={i}
-          className="w-2.5 bg-gradient-to-t from-pink-500 to-rose-400 rounded-t-sm transition-all duration-700 animate-pulse"
+          className="w-2 bg-gradient-to-t from-pink-500 to-rose-400 rounded-t-sm transition-all duration-700 animate-pulse"
           style={{ height: bar.h, animationDelay: bar.delay }}
         />
       ))}
@@ -132,8 +144,8 @@ function FeatureCard({
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
 
-    const rotateX = -((y - centerY) / centerY) * 10;
-    const rotateY = ((x - centerX) / centerX) * 10;
+    const rotateX = -((y - centerY) / centerY) * 6;
+    const rotateY = ((x - centerX) / centerX) * 6;
 
     setTilt({ x: rotateX, y: rotateY });
     setSpotlight({ x, y, opacity: 1 });
@@ -152,66 +164,75 @@ function FeatureCard({
         // @ts-ignore
         cardRef.current = el;
       }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className={`group relative rounded-3xl border border-border/60 bg-card/90 dark:bg-card/50 backdrop-blur-xl p-7 sm:p-8 
-        transition-all duration-300 cursor-default overflow-hidden perspective-1000
-        ${isIntersecting ? "animate-fade-up-blur opacity-100" : "opacity-0"}
-        ${feature.span}
-      `}
-      style={{
-        animationDelay: `${delay}ms`,
-        boxShadow: "var(--shadow-neumorphic)",
-        transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-      }}
+      className={`group relative ${feature.span} ${
+        isIntersecting ? "animate-fade-up-blur opacity-100" : "opacity-0"
+      }`}
+      style={{ animationDelay: `${delay}ms` }}
     >
-      {/* Specular rim light top edge */}
-      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-white/80 dark:via-white/20 to-transparent" />
-
-      {/* Dynamic Cursor Spotlight */}
+      {/* Outer Double-Bezel Shell */}
       <div
-        className="pointer-events-none absolute -inset-px rounded-3xl transition-opacity duration-300"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        className="p-1.5 sm:p-2 rounded-[2rem] bg-black/[0.03] dark:bg-white/[0.04] border border-black/5 dark:border-white/10 ring-1 ring-black/[0.04] dark:ring-white/5 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1 h-full"
         style={{
-          opacity: spotlight.opacity,
-          background: `radial-gradient(400px circle at ${spotlight.x}px ${spotlight.y}px, ${feature.glow}, transparent 60%)`,
+          transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
         }}
-      />
+      >
+        {/* Inner Core Container */}
+        <div className="relative rounded-[calc(2rem-0.375rem)] border border-border/50 bg-card/95 dark:bg-card/70 backdrop-blur-xl p-7 sm:p-8 transition-all duration-300 overflow-hidden h-full flex flex-col justify-between shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
+          {/* Top Specular Rim */}
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-white/80 dark:via-white/20 to-transparent" />
 
-      {/* Card Content */}
-      <div className="relative z-10 flex flex-col h-full justify-between">
-        <div>
-          {/* Top Row: Icon + Tag + Visual */}
-          <div className="flex items-center justify-between mb-6">
-            <div
-              className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300`}
-            >
-              <feature.icon className="w-7 h-7 text-white drop-shadow-sm" />
+          {/* Dynamic Cursor Spotlight */}
+          <div
+            className="pointer-events-none absolute -inset-px rounded-[calc(2rem-0.375rem)] transition-opacity duration-300"
+            style={{
+              opacity: spotlight.opacity,
+              background: `radial-gradient(400px circle at ${spotlight.x}px ${spotlight.y}px, ${feature.glow}, transparent 65%)`,
+            }}
+          />
+
+          {/* Card Content */}
+          <div className="relative z-10 flex flex-col h-full justify-between">
+            <div>
+              {/* Top Row: Icon + Tag + Visual */}
+              <div className="flex items-center justify-between mb-6">
+                <div
+                  className={`w-13 h-13 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center shadow-lg shadow-emerald-500/10 group-hover:scale-105 transition-transform duration-300`}
+                >
+                  <feature.icon className="w-6 h-6 text-white drop-shadow-sm" />
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {feature.has3dVisual === "cube" && <Rotating3DCube />}
+                  {feature.has3dVisual === "bars" && <LivingDataBars />}
+                  <span className="text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-muted/80 text-muted-foreground border border-border/50">
+                    {feature.tag}
+                  </span>
+                </div>
+              </div>
+
+              {/* Title & Desc */}
+              <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-3 tracking-tight group-hover:text-primary transition-colors duration-200">
+                {feature.title}
+              </h3>
+
+              <p className="text-muted-foreground text-sm sm:text-base leading-relaxed [text-wrap:pretty]">
+                {feature.desc}
+              </p>
             </div>
 
-            <div className="flex items-center gap-3">
-              {feature.has3dVisual === "cube" && <Rotating3DCube />}
-              {feature.has3dVisual === "bars" && <LivingDataBars />}
-              <span className="text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-muted/80 text-muted-foreground border border-border/60">
-                {feature.tag}
+            {/* Bottom Accent Indicator */}
+            <div className="mt-8 pt-4 border-t border-border/40 flex items-center justify-between text-xs text-muted-foreground font-medium">
+              <span className="flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full bg-gradient-to-r ${feature.gradient}`} />
+                Active in real-time
+              </span>
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-primary font-semibold">
+                Learn more ↗
               </span>
             </div>
           </div>
-
-          {/* Title */}
-          <h3 className="font-extrabold text-foreground text-xl sm:text-2xl mb-3 leading-tight tracking-tight">
-            {feature.title}
-          </h3>
-
-          {/* Description */}
-          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-            {feature.desc}
-          </p>
-        </div>
-
-        {/* Bottom Accent */}
-        <div className="mt-6 pt-4 border-t border-border/40 flex items-center gap-2 text-xs font-bold text-foreground/80 group-hover:text-primary transition-colors">
-          <Sparkles className="w-3.5 h-3.5 text-primary" />
-          <span>Active & Ready on Web & Mobile</span>
         </div>
       </div>
     </div>
@@ -222,7 +243,7 @@ export function FeaturesSection() {
   const { ref, isIntersecting } = useIntersectionObserver();
 
   return (
-    <section id="features" className="py-28 bg-background relative overflow-hidden">
+    <section id="features" className="py-28 sm:py-36 bg-background relative overflow-hidden">
       {/* Decorative ambient background */}
       <div className="absolute inset-0 dot-grid opacity-30 pointer-events-none" />
       <div className="absolute top-0 right-0 w-[650px] h-[650px] bg-emerald-500/5 rounded-full blur-[140px] pointer-events-none" />
@@ -232,16 +253,16 @@ export function FeaturesSection() {
         {/* Section Header */}
         <div
           ref={ref}
-          className={`text-center mb-18 ${isIntersecting ? "animate-fade-up-blur opacity-100" : "opacity-0"}`}
+          className={`text-center mb-16 sm:mb-20 ${isIntersecting ? "animate-fade-up-blur opacity-100" : "opacity-0"}`}
         >
-          <span className="glass-pill text-emerald-700 dark:text-emerald-300 text-xs font-extrabold mb-4">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[10px] sm:text-xs uppercase tracking-[0.2em] font-semibold mb-4">
             <Zap className="w-3.5 h-3.5 text-emerald-500" />
             <span>Platform Capabilities</span>
-          </span>
+          </div>
 
           <h2
-            className="text-3xl sm:text-4xl lg:text-5xl font-black text-foreground mt-3 tracking-[-0.03em]"
-            style={{ lineHeight: "1.10" }}
+            className="text-3xl sm:text-4xl lg:text-5xl font-black text-foreground mt-2 tracking-tight [text-wrap:balance]"
+            style={{ lineHeight: "1.12" }}
           >
             Built for speed, precision, and{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-400">
@@ -249,15 +270,15 @@ export function FeaturesSection() {
             </span>
           </h2>
 
-          <p className="mt-5 text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+          <p className="mt-5 text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto leading-relaxed [text-wrap:pretty]">
             Every feature is engineered to connect surplus food with verified community shelters in real-time.
           </p>
         </div>
 
-        {/* 3D Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Asymmetrical Bento Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8">
           {features.map((f, i) => (
-            <FeatureCard key={f.title} feature={f} delay={i * 90} />
+            <FeatureCard key={f.title} feature={f} delay={i * 80} />
           ))}
         </div>
       </div>
