@@ -1,7 +1,5 @@
-import { useEffect, useRef } from "react";
 import { Link } from "@tanstack/react-router";
 import { Leaf, ArrowRight, ChevronDown, UtensilsCrossed, Building2 } from "lucide-react";
-import bgVideo from "../../../Cinematic_aerial_drone_footage.mp4";
 import { Hero3dBackground } from "./Hero3dBackground";
 
 /* ─── Floating Background Orbs ─── */
@@ -11,14 +9,6 @@ function FloatingOrb({ className }: { className: string }) {
 
 /* ─── Main HeroSection ─── */
 export function HeroSection() {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.playbackRate = 0.45;
-    }
-  }, []);
-
   return (
     <>
       {/* ══════════ FLOATING ISLAND NAVBAR ══════════ */}
@@ -77,21 +67,7 @@ export function HeroSection() {
 
       {/* ══════════ HERO SECTION ══════════ */}
       <section className="relative overflow-hidden flex flex-col justify-center min-h-[82vh] sm:min-h-[88vh] pt-28 pb-16">
-        {/* Background Video */}
-        <div className="absolute inset-0 pointer-events-none select-none z-0 overflow-hidden bg-emerald-950">
-          <video
-            ref={videoRef}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-full object-cover opacity-75 pointer-events-none"
-          >
-            <source src={bgVideo} type="video/mp4" />
-          </video>
-        </div>
-
-        {/* 3D Interactive Spatial Particle Mesh Canvas */}
+        {/* 3D Interactive Spatial Mesh & Wavefield Background */}
         <Hero3dBackground />
 
         {/* Gradient overlays */}
