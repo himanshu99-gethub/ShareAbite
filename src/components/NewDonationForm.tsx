@@ -45,9 +45,9 @@ function MapPickerInner({ initLat, initLng, onSelect }: MapPickerInnerProps) {
     }).setView([initLat, initLng], initLat !== 20.5937 ? 15 : 5);
 
     L.tileLayer(
-      "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+      "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
       {
-        subdomains: "abcd",
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19,
       }
     ).addTo(map);

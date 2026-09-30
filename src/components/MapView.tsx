@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { Donation } from "@/hooks/use-donations";
 import { loadLeaflet } from "@/lib/leaflet-loader";
-import { Compass, Locate, ZoomIn, ZoomOut, Loader2, Navigation, Route, Clock, Ruler } from "lucide-react";
+import { Compass, Locate, ZoomIn, ZoomOut, Loader2, Navigation, Route, Clock, Ruler, Layers } from "lucide-react";
 
 /** Free OSRM routing — no API key needed */
 async function fetchOsrmRoute(
@@ -78,6 +78,10 @@ export function MapView({
   const [routeLoading, setRouteLoading] = useState(false);
   const initialCenterDoneRef = useRef(false);
 
+  const [mapStyle, setMapStyle] = useState<"streets" | "satellite" | "hot">("streets");
+  const [showStyleMenu, setShowStyleMenu] = useState(false);
+  const tileLayerRef = useRef<any>(null);
+
   // 1. Dynamic Leaflet loader
   useEffect(() => {
     let isMounted = true;
@@ -114,17 +118,6 @@ export function MapView({
         attributionControl: true,
       }).setView([initialLat, initialLng], initialZoom);
 
-      // CartoDB Voyager raster tiles for crisp modern look
-      L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-        {
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-          subdomains: "abcd",
-          maxZoom: 20,
-        }
-      ).addTo(map);
-
       mapInstanceRef.current = map;
 
       // Handle resize and dimension recalculations
@@ -148,6 +141,42 @@ export function MapView({
       console.error("Error creating Leaflet map instance:", err);
     }
   }, [isLeafletReady]);
+
+  // 2b. Dynamic Tile Layer Switcher (OpenStreetMap Real Map, Satellite, Humanitarian)
+  useEffect(() => {
+    if (!mapInstanceRef.current || !isLeafletReady) return;
+    const L = (window as any).L;
+    if (!L) return;
+
+    if (tileLayerRef.current) {
+      tileLayerRef.current.remove();
+      tileLayerRef.current = null;
+    }
+
+    let url = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+    let options: any = {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19,
+    };
+
+    if (mapStyle === "satellite") {
+      url = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
+      options = {
+        attribution: "Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics",
+        maxZoom: 19,
+      };
+    } else if (mapStyle === "hot") {
+      url = "https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png";
+      options = {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Humanitarian OSM Team',
+        subdomains: "abc",
+        maxZoom: 19,
+      };
+    }
+
+    const layer = L.tileLayer(url, options).addTo(mapInstanceRef.current);
+    tileLayerRef.current = layer;
+  }, [mapStyle, isLeafletReady]);
 
   // 3. Pan to user's location when detected
   useEffect(() => {
@@ -499,6 +528,67 @@ export function MapView({
             <Compass className="w-5 h-5 text-primary" />
           </button>
         )}
+
+        {/* Layer Switcher (Streets, Satellite, Humanitarian) */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setShowStyleMenu((prev) => !prev)}
+            title="Switch Map Layers (Street / Satellite)"
+            className="w-10 h-10 rounded-xl bg-background/95 hover:bg-background text-foreground border border-border/80 shadow-lg backdrop-blur-md flex items-center justify-center transition-all hover:scale-105 active:scale-95 group"
+          >
+            <Layers className="w-5 h-5 text-emerald-600 group-hover:rotate-12 transition-transform" />
+          </button>
+
+          {showStyleMenu && (
+            <div className="absolute left-12 top-0 z-[500] w-52 p-1.5 rounded-2xl bg-background/95 backdrop-blur-xl border border-border/80 shadow-2xl flex flex-col gap-1 text-xs animate-in fade-in slide-in-from-left-2 duration-150">
+              <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                Map Layer
+              </div>
+              <button
+                type="button"
+                onClick={() => { setMapStyle("streets"); setShowStyleMenu(false); }}
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-left transition-colors ${
+                  mapStyle === "streets" ? "bg-primary/10 text-primary font-bold" : "hover:bg-muted text-foreground font-medium"
+                }`}
+              >
+                <span className="text-base">🗺️</span>
+                <div>
+                  <p className="leading-tight font-semibold">Real Street Map</p>
+                  <p className="text-[10px] text-muted-foreground">Detailed roads & landmarks</p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setMapStyle("satellite"); setShowStyleMenu(false); }}
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-left transition-colors ${
+                  mapStyle === "satellite" ? "bg-primary/10 text-primary font-bold" : "hover:bg-muted text-foreground font-medium"
+                }`}
+              >
+                <span className="text-base">🛰️</span>
+                <div>
+                  <p className="leading-tight font-semibold">Satellite Imagery</p>
+                  <p className="text-[10px] text-muted-foreground">Real aerial photography</p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setMapStyle("hot"); setShowStyleMenu(false); }}
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-left transition-colors ${
+                  mapStyle === "hot" ? "bg-primary/10 text-primary font-bold" : "hover:bg-muted text-foreground font-medium"
+                }`}
+              >
+                <span className="text-base">🏥</span>
+                <div>
+                  <p className="leading-tight font-semibold">Humanitarian Map</p>
+                  <p className="text-[10px] text-muted-foreground">High contrast NGO relief</p>
+                </div>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="absolute bottom-4 right-4 z-[400] flex flex-col gap-1.5">
