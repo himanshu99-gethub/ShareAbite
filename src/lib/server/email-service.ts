@@ -105,37 +105,7 @@ export async function sendOtpEmail({ to, otp, type = "login" }: SendEmailOptions
 
   console.log(`[EmailService] Preparing ${type} OTP dispatch for recipient: ${to}...`);
 
-  // 1. FASTEST: High-Speed Resend HTTPS REST API (Sub-second delivery ~200ms)
-  if (resendApiKey) {
-    try {
-      const resendRes = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${resendApiKey.trim()}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: "ShareABite <onboarding@resend.dev>",
-          to: [to],
-          subject,
-          text: textBody,
-          html: htmlBody,
-        }),
-      });
-
-      const resData = await resendRes.json();
-      if (resendRes.ok && resData?.id) {
-        console.log(`[EmailService] ⚡ Resend API sent OTP instantly to ${to}! (ID: ${resData.id})`);
-        return { success: true, messageId: resData.id };
-      } else {
-        console.warn("[EmailService] Resend API error, trying SMTP fallback:", resData);
-      }
-    } catch (resendErr: any) {
-      console.warn("[EmailService] Resend exception, trying SMTP fallback:", resendErr?.message);
-    }
-  }
-
-  // 2. Secondary: Nodemailer Gmail SMTP
+  // 1. Gmail SMTP via Nodemailer — PRIMARY (works for any recipient)
   try {
     const nodemailer = await import("nodemailer");
     const transporter = nodemailer.createTransport({
@@ -154,11 +124,42 @@ export async function sendOtpEmail({ to, otp, type = "login" }: SendEmailOptions
       html: htmlBody,
     });
 
-    console.log(`[EmailService] Nodemailer sent ${type} OTP successfully! Message ID: ${info.messageId}`);
+    console.log(`[EmailService] ✅ Gmail SMTP sent OTP to ${to}! ID: ${info.messageId}`);
     return { success: true, messageId: info.messageId };
   } catch (err: any) {
-    // Continue to native TLS socket fallback
+    console.error(`[EmailService] ❌ Gmail SMTP failed: ${err?.message || err}`);
+    console.error(`[EmailService] Gmail user: ${emailUser}, pass length: ${emailPass.length}`);
+    // Fall through to Resend fallback
   }
+
+  // 2. Resend API fallback (requires verified domain for non-owner emails, but try anyway)
+  if (resendApiKey) {
+    try {
+      const resendRes = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${resendApiKey.trim()}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: "ShareABite <onboarding@resend.dev>",
+          to: [to],
+          subject,
+          text: textBody,
+          html: htmlBody,
+        }),
+      });
+      const resData = await resendRes.json();
+      if (resendRes.ok && resData?.id) {
+        console.log(`[EmailService] ✅ Resend API sent OTP to ${to}! ID: ${resData.id}`);
+        return { success: true, messageId: resData.id };
+      }
+      console.warn(`[EmailService] ❌ Resend failed:`, JSON.stringify(resData));
+    } catch (resendErr: any) {
+      console.warn(`[EmailService] ❌ Resend exception: ${resendErr?.message}`);
+    }
+  }
+
 
   // Direct SSL on Port 465 (Fastest & most reliable for Gmail)
   return new Promise((resolve) => {

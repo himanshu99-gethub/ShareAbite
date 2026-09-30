@@ -17,7 +17,7 @@ const features = [
     icon: UtensilsCrossed,
     tag: "Instant Posting",
     title: "Post a Donation in 60 Seconds",
-    desc: "Donors list surplus food with package type, exact servings, safe pickup window, and GPS address. Verified photos boost NGO response time by 3x.",
+    desc: "Donors list surplus food with package type, exact servings, safe pickup window, and GPS address. Verified photos boost NGO response time.",
     gradient: "from-emerald-500 to-teal-500",
     glow: "rgba(16, 185, 129, 0.25)",
     span: "col-span-1 md:col-span-7",
@@ -28,28 +28,28 @@ const features = [
     tag: "Real-Time Radar",
     title: "Interactive Live Surplus Map",
     desc: "Nearby NGOs see real-time pins categorized by food type, freshness timer, and driving distance.",
-    gradient: "from-amber-500 to-orange-500",
+    gradient: "from-amber-500 to-emerald-500",
     glow: "rgba(245, 158, 11, 0.25)",
     span: "col-span-1 md:col-span-5",
-    has3dVisual: "radar",
+    has3dVisual: null,
   },
   {
     icon: Bell,
     tag: "Zero Lag",
     title: "Instant 1-Tap Pickup Requests",
     desc: "NGOs request surplus with one tap. Donors receive immediate instant notifications to accept or schedule pickup.",
-    gradient: "from-blue-500 to-indigo-500",
-    glow: "rgba(99, 102, 241, 0.25)",
+    gradient: "from-emerald-600 to-teal-500",
+    glow: "rgba(16, 185, 129, 0.25)",
     span: "col-span-1 md:col-span-4",
     has3dVisual: null,
   },
   {
-    icon: CheckCircle2,
+    icon: ShieldCheck,
     tag: "Transparency",
-    title: "Verified Verification Protocol",
+    title: "Verified Safety Protocol",
     desc: "Secure contact verification, exact handoff directions, and digital verification codes protect every transaction.",
-    gradient: "from-purple-500 to-pink-500",
-    glow: "rgba(168, 85, 247, 0.25)",
+    gradient: "from-teal-500 to-emerald-600",
+    glow: "rgba(20, 184, 166, 0.25)",
     span: "col-span-1 md:col-span-4",
     has3dVisual: null,
   },
@@ -58,8 +58,8 @@ const features = [
     tag: "Live Tracking",
     title: "Real-Time Dispatch Flow",
     desc: "Track status seamlessly: Available → Requested → Volunteer Dispatched → Safely Distributed.",
-    gradient: "from-orange-500 to-red-500",
-    glow: "rgba(249, 115, 22, 0.25)",
+    gradient: "from-amber-500 to-orange-500",
+    glow: "rgba(245, 158, 11, 0.25)",
     span: "col-span-1 md:col-span-4",
     has3dVisual: null,
   },
@@ -68,8 +68,8 @@ const features = [
     tag: "Impact Analytics",
     title: "Community Intelligence Dashboard",
     desc: "Both Donors and NGOs access rich analytics: kilograms of food saved, CO₂ offset, and meals delivered to verified families.",
-    gradient: "from-pink-500 to-rose-500",
-    glow: "rgba(244, 63, 94, 0.25)",
+    gradient: "from-emerald-500 via-teal-500 to-amber-500",
+    glow: "rgba(16, 185, 129, 0.25)",
     span: "col-span-1 md:col-span-12",
     has3dVisual: "bars",
   },
@@ -116,7 +116,7 @@ function LivingDataBars() {
       ].map((bar, i) => (
         <div
           key={i}
-          className="w-2 bg-gradient-to-t from-pink-500 to-rose-400 rounded-t-sm transition-all duration-700 animate-pulse"
+          className="w-2 bg-gradient-to-t from-emerald-500 to-amber-400 rounded-t-sm transition-all duration-700 animate-pulse"
           style={{ height: bar.h, animationDelay: bar.delay }}
         />
       ))}

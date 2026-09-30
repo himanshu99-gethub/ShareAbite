@@ -30,6 +30,7 @@ export function ReceiverDashboard({ receiverId, receiverName }: ReceiverDashboar
   const [userLng, setUserLng] = useState<number | null>(null);
   const [requestingId, setRequestingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [distanceFilter, setDistanceFilter] = useState<"all" | "nearest" | "5km" | "10km">("nearest");
 
   const { donations, isLoading: donationsLoading, refetch: refetchDonations } = useDonations({
     statusFilter: ["available"],
@@ -54,18 +55,31 @@ export function ReceiverDashboard({ receiverId, receiverName }: ReceiverDashboar
 
   const myRequestedDonationIds = new Set(requests.map((r) => r.donation_id));
 
-  // Sort by distance if we have user location
+  // Filter & sort by distance if user location is known
   const sortedDonations = [...donations]
     .filter((d) => {
-      if (!searchQuery.trim()) return true;
-      const q = searchQuery.toLowerCase();
-      return (
-        d.food_type.toLowerCase().includes(q) ||
-        d.pickup_address.toLowerCase().includes(q) ||
-        (d.description?.toLowerCase().includes(q) ?? false)
-      );
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matches = (
+          d.food_type.toLowerCase().includes(q) ||
+          d.pickup_address.toLowerCase().includes(q) ||
+          (d.description?.toLowerCase().includes(q) ?? false)
+        );
+        if (!matches) return false;
+      }
+
+      if (userLat && userLng && d.latitude && d.longitude) {
+        const dist = getDistanceKm(userLat, userLng, d.latitude, d.longitude);
+        if (distanceFilter === "5km" && dist > 5) return false;
+        if (distanceFilter === "10km" && dist > 10) return false;
+      }
+
+      return true;
     })
     .sort((a, b) => {
+      if (distanceFilter === "all") {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
       if (userLat && userLng && a.latitude && a.longitude && b.latitude && b.longitude) {
         return (
           getDistanceKm(userLat, userLng, a.latitude, a.longitude) -
@@ -208,8 +222,8 @@ export function ReceiverDashboard({ receiverId, receiverName }: ReceiverDashboar
 
       {activeTab === "browse" && (
         <div>
-          {/* Search + View Toggle */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-5">
+          {/* Search + Distance Filter + View Toggle */}
+          <div className="flex flex-col sm:flex-row gap-3 mb-3">
             <div className="relative flex-1">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
@@ -222,21 +236,44 @@ export function ReceiverDashboard({ receiverId, receiverName }: ReceiverDashboar
             <div className="flex gap-1 bg-muted/50 rounded-xl p-1 flex-shrink-0">
               <button
                 onClick={() => setViewMode("map")}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  viewMode === "map" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground"
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                  viewMode === "map" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <MapPin className="w-4 h-4" /> Map
               </button>
               <button
                 onClick={() => setViewMode("list")}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                  viewMode === "list" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground"
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                  viewMode === "list" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <List className="w-4 h-4" /> List
               </button>
             </div>
+          </div>
+
+          {/* Distance Filter Quick-Pills */}
+          <div className="flex items-center gap-2 mb-5 overflow-x-auto pb-1">
+            <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap">Distance:</span>
+            {[
+              { id: "nearest", label: "Nearest First ⚡" },
+              { id: "5km", label: "< 5 km" },
+              { id: "10km", label: "< 10 km" },
+              { id: "all", label: "All Donations" },
+            ].map((filter) => (
+              <button
+                key={filter.id}
+                onClick={() => setDistanceFilter(filter.id as any)}
+                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                  distanceFilter === filter.id
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
+              >
+                {filter.label}
+              </button>
+            ))}
           </div>
 
           {/* Map view */}
@@ -273,20 +310,15 @@ export function ReceiverDashboard({ receiverId, receiverName }: ReceiverDashboar
                     ? getDistanceKm(userLat, userLng, d.latitude, d.longitude)
                     : null;
                 return (
-                  <div key={d.id} className="relative">
-                    {dist !== null && (
-                      <div className="absolute top-3 left-3 z-10 bg-white/90 backdrop-blur-sm border border-border/60 text-xs font-semibold text-muted-foreground px-2 py-1 rounded-lg">
-                        📍 {dist < 1 ? `${(dist * 1000).toFixed(0)}m` : `${dist.toFixed(1)}km`}
-                      </div>
-                    )}
-                    <DonationCard
-                      donation={d}
-                      viewAs="receiver"
-                      onRequestPickup={handleRequestPickup}
-                      hasRequestedByMe={myRequestedDonationIds.has(d.id)}
-                      isRequesting={requestingId === d.id}
-                    />
-                  </div>
+                  <DonationCard
+                    key={d.id}
+                    donation={d}
+                    distanceKm={dist}
+                    viewAs="receiver"
+                    onRequestPickup={handleRequestPickup}
+                    hasRequestedByMe={myRequestedDonationIds.has(d.id)}
+                    isRequesting={requestingId === d.id}
+                  />
                 );
               })}
             </div>

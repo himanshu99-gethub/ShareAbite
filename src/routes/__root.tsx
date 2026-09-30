@@ -73,14 +73,17 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
+import { SmoothScrollProvider } from "@/components/common/SmoothScrollProvider";
 
 function RootComponent() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="shareabite-theme">
-      <div className="animate-page-enter">
-        <Outlet />
-      </div>
-      <Toaster position="top-center" richColors />
+      <SmoothScrollProvider>
+        <div className="animate-page-enter">
+          <Outlet />
+        </div>
+        <Toaster position="top-center" richColors />
+      </SmoothScrollProvider>
     </ThemeProvider>
   );
 }

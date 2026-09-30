@@ -764,3 +764,21 @@
   pointer-events: none;
 }
 
+/* 3D Hardware Accelerated Utilities */
+.perspective-1000 {
+  perspective: 1000px;
+  -webkit-perspective: 1000px;
+}
+.preserve-3d {
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+}
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.will-change-transform {
+  will-change: transform;
+}
+
+

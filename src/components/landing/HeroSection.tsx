@@ -66,23 +66,23 @@ export function HeroSection() {
       </header>
 
       {/* ══════════ HERO SECTION ══════════ */}
-      <section className="relative overflow-hidden flex flex-col justify-center min-h-[82vh] sm:min-h-[88vh] pt-28 pb-16">
+      <section className="relative overflow-hidden flex flex-col justify-center min-h-[90vh] lg:min-h-[94vh] pt-28 pb-20">
         {/* 3D Interactive Spatial Mesh & Wavefield Background */}
         <Hero3dBackground />
 
         {/* Gradient overlays */}
-        <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-emerald-950/80 via-emerald-950/40 to-transparent z-[1]" />
-        <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-emerald-950/60 via-transparent to-black/30 z-[1]" />
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-emerald-950/85 via-emerald-950/45 to-transparent z-[1]" />
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-emerald-950/70 via-transparent to-black/35 z-[1]" />
 
         {/* Floating atmospheric orbs */}
         <FloatingOrb className="w-[600px] h-[600px] bg-emerald-500/8 blur-[120px] top-[-100px] right-[5%] z-[1]" />
         <FloatingOrb className="w-[400px] h-[400px] bg-amber-400/6 blur-[100px] bottom-[10%] right-[20%] z-[1]" />
 
         {/* ── Hero Content ── */}
-        <div className="relative z-10 max-w-6xl mx-auto px-5 w-full pt-4">
+        <div className="relative z-10 max-w-6xl mx-auto px-5 sm:px-6 w-full pt-4">
           <div className="max-w-2xl">
-
-            {/* Micro Eyebrow Pill Tag */}
+            
+            {/* Mission Pill Tag */}
             <div className="animate-badge-pop mb-5" style={{ animationDelay: "0ms" }}>
               <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-400/25 backdrop-blur-md text-emerald-300 text-[10px] sm:text-xs uppercase tracking-[0.2em] font-semibold shadow-[0_0_15px_rgba(16,185,129,0.15)]">
                 <Leaf className="w-3 h-3 text-emerald-400" />
@@ -92,16 +92,16 @@ export function HeroSection() {
 
             {/* Headline */}
             <h1
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-[3.75rem] font-bold text-white text-left tracking-tight animate-fade-up-blur [text-wrap:balance]"
-              style={{ lineHeight: "1.10", animationDelay: "80ms" }}
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-[3.9rem] font-black text-white text-left tracking-tight animate-fade-up-blur [text-wrap:balance]"
+              style={{ lineHeight: "1.08", animationDelay: "80ms" }}
             >
-              Your{" "}
+              Turn Surplus Food Into{" "}
               <span className="relative inline-block">
-                <span className="gradient-text-hero">small contribution</span>
-                <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400/70 to-transparent rounded-full" />
+                <span className="bg-gradient-to-r from-amber-300 via-amber-400 to-emerald-400 bg-clip-text text-transparent">
+                  Immediate Hope.
+                </span>
+                <span className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-amber-400/80 via-emerald-400/60 to-transparent rounded-full" />
               </span>
-              <br />
-              can bring a big smile to someone's face
             </h1>
 
             {/* Sub-headline */}
@@ -109,7 +109,7 @@ export function HeroSection() {
               className="mt-5 text-base sm:text-lg text-white/80 text-left max-w-xl leading-relaxed animate-fade-up-blur [text-wrap:pretty]"
               style={{ animationDelay: "160ms" }}
             >
-              Connecting surplus food from restaurants and households with nearby NGOs and community shelters in real-time.
+              Connecting excess food from restaurants, catered events, and households with nearby verified NGOs and shelters in real-time. Free forever, zero waste.
             </p>
 
             {/* CTAs with Button-in-Button Architecture */}
@@ -119,13 +119,13 @@ export function HeroSection() {
             >
               <Link
                 to="/login"
-                className="group relative inline-flex items-center justify-between sm:justify-center gap-3 rounded-full pl-6 pr-2 py-2.5 text-sm font-bold transition-all duration-300 active:scale-[0.98] bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 shadow-[0_4px_24px_rgba(251,191,36,0.35)] hover:shadow-[0_6px_32px_rgba(251,191,36,0.50)] hover:-translate-y-0.5"
+                className="group relative inline-flex items-center justify-between sm:justify-center gap-3 rounded-full pl-6 pr-2.5 py-3 text-sm font-bold transition-all duration-300 active:scale-[0.98] bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 shadow-[0_4px_24px_rgba(251,191,36,0.35)] hover:shadow-[0_6px_32px_rgba(251,191,36,0.50)] hover:-translate-y-0.5"
               >
                 <span className="flex items-center gap-2">
                   <UtensilsCrossed className="w-4 h-4" />
                   Donate food now
                 </span>
-                <div className="w-8 h-8 rounded-full bg-amber-950/15 flex items-center justify-center transition-transform duration-300 group-hover:translate-x-1">
+                <div className="w-7 h-7 rounded-full bg-amber-950/15 flex items-center justify-center transition-transform duration-300 group-hover:translate-x-1">
                   <ArrowRight className="w-4 h-4" />
                 </div>
               </Link>
@@ -134,7 +134,7 @@ export function HeroSection() {
                 to="/login"
                 className="group inline-flex items-center justify-center gap-2.5 rounded-full border border-white/20 bg-white/10 text-white px-6 py-3 text-sm font-semibold hover:bg-white/18 hover:border-white/30 backdrop-blur-md transition-all duration-300 active:scale-[0.98] hover:-translate-y-0.5"
               >
-                <Building2 className="w-4 h-4 text-white/75" />
+                <Building2 className="w-4 h-4 text-white/80" />
                 <span>My NGO needs food</span>
               </Link>
             </div>
@@ -144,8 +144,8 @@ export function HeroSection() {
               className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 animate-fade-up-blur"
               style={{ animationDelay: "320ms" }}
             >
-              {["Free forever", "Zero commissions", "Community powered"].map((item) => (
-                <span key={item} className="flex items-center gap-1.5 text-xs text-white/60 font-medium">
+              {["100% Free for Non-profits", "GPS-Verified Pickups", "FSSAI Safety Guidelines"].map((item) => (
+                <span key={item} className="flex items-center gap-1.5 text-xs text-white/70 font-medium">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
                   {item}
                 </span>

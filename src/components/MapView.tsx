@@ -1,7 +1,32 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { Donation } from "@/hooks/use-donations";
 import { loadLeaflet } from "@/lib/leaflet-loader";
-import { Compass, Locate, ZoomIn, ZoomOut, Loader2, Navigation } from "lucide-react";
+import { Compass, Locate, ZoomIn, ZoomOut, Loader2, Navigation, Route, Clock, Ruler } from "lucide-react";
+
+/** Free OSRM routing — no API key needed */
+async function fetchOsrmRoute(
+  fromLat: number, fromLng: number,
+  toLat: number, toLng: number
+): Promise<{ coordinates: [number, number][]; distanceKm: number; durationMin: number } | null> {
+  try {
+    const url =
+      `https://router.project-osrm.org/route/v1/driving/` +
+      `${fromLng},${fromLat};${toLng},${toLat}` +
+      `?overview=full&geometries=geojson&steps=false`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const route = data.routes?.[0];
+    if (!route) return null;
+    return {
+      coordinates: route.geometry.coordinates.map(([lng, lat]: [number, number]) => [lat, lng] as [number, number]),
+      distanceKm: route.distance / 1000,
+      durationMin: Math.ceil(route.duration / 60),
+    };
+  } catch {
+    return null;
+  }
+}
 
 export interface NGOProfile {
   id: string;
@@ -46,8 +71,11 @@ export function MapView({
   const markersRef = useRef<any[]>([]);
   const userMarkerRef = useRef<any>(null);
   const polylineRef = useRef<any>(null);
+  const routeLayerRef = useRef<any>(null);          // OSRM road route layer
   const [isLeafletReady, setIsLeafletReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [routeInfo, setRouteInfo] = useState<{ distanceKm: number; durationMin: number } | null>(null);
+  const [routeLoading, setRouteLoading] = useState(false);
   const initialCenterDoneRef = useRef(false);
 
   // 1. Dynamic Leaflet loader
@@ -129,6 +157,69 @@ export function MapView({
       mapInstanceRef.current.flyTo([userLat, userLng], 14, { duration: 1.5 });
     }
   }, [userLat, userLng]);
+
+  // 3b. OSRM real road routing — free, no API key
+  useEffect(() => {
+    if (!isLeafletReady || !mapInstanceRef.current) return;
+    if (!showTracking || !userLat || !userLng) return;
+
+    // Find first NGO with coords to route to
+    const targetNgo = ngos.find((n) => n.latitude && n.longitude);
+    if (!targetNgo?.latitude || !targetNgo?.longitude) return;
+
+    const L = (window as any).L;
+    if (!L) return;
+
+    // Remove old route layer
+    if (routeLayerRef.current) {
+      routeLayerRef.current.remove();
+      routeLayerRef.current = null;
+    }
+    setRouteInfo(null);
+    setRouteLoading(true);
+
+    fetchOsrmRoute(userLat, userLng, targetNgo.latitude, targetNgo.longitude)
+      .then((result) => {
+        if (!result || !mapInstanceRef.current) return;
+
+        // Animated dashed route line (Zomato style)
+        const routeLine = L.polyline(result.coordinates, {
+          color: "#10b981",
+          weight: 5,
+          opacity: 0.9,
+          dashArray: "12, 8",
+          lineJoin: "round",
+          lineCap: "round",
+        }).addTo(mapInstanceRef.current);
+
+        // Animated moving dot on the route
+        const glowLine = L.polyline(result.coordinates, {
+          color: "#6ee7b7",
+          weight: 2,
+          opacity: 0.5,
+          dashArray: "4, 20",
+        }).addTo(mapInstanceRef.current);
+
+        routeLayerRef.current = L.layerGroup([routeLine, glowLine]);
+        routeLayerRef.current.addTo = () => {}; // already added
+
+        setRouteInfo({ distanceKm: result.distanceKm, durationMin: result.durationMin });
+
+        // Fit map to show full route
+        mapInstanceRef.current.fitBounds(
+          L.latLngBounds(result.coordinates).pad(0.15),
+          { maxZoom: 15, duration: 1 }
+        );
+      })
+      .finally(() => setRouteLoading(false));
+
+    return () => {
+      if (routeLayerRef.current) {
+        try { routeLayerRef.current.eachLayer?.((l: any) => l.remove()); } catch {}
+        routeLayerRef.current = null;
+      }
+    };
+  }, [isLeafletReady, showTracking, userLat, userLng, ngos]);
 
   // 4. Update all Pins (User Live Location, Food Donations, and NGOs)
   useEffect(() => {
@@ -429,8 +520,48 @@ export function MapView({
         </button>
       </div>
 
+      {/* ── OSRM Route Loading Spinner ── */}
+      {routeLoading && (
+        <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-[400] flex items-center gap-2 px-4 py-2 rounded-full bg-background/95 backdrop-blur-md border border-border shadow-lg text-xs font-semibold text-muted-foreground">
+          <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-500" />
+          Calculating road route…
+        </div>
+      )}
+
+      {/* ── Zomato-style Route Info Panel ── */}
+      {routeInfo && showTracking && !routeLoading && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[400] flex items-center gap-3 px-5 py-3 rounded-2xl bg-background/95 backdrop-blur-md border border-emerald-500/30 shadow-[0_8px_30px_rgba(16,185,129,0.2)] text-sm">
+          {/* Route icon */}
+          <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center">
+            <Route className="w-4 h-4 text-emerald-500" />
+          </div>
+
+          {/* Distance */}
+          <div className="flex items-center gap-1.5 text-foreground">
+            <Ruler className="w-3.5 h-3.5 text-emerald-500" />
+            <span className="font-black text-base">{routeInfo.distanceKm.toFixed(1)} km</span>
+          </div>
+
+          <div className="w-px h-5 bg-border" />
+
+          {/* ETA */}
+          <div className="flex items-center gap-1.5 text-foreground">
+            <Clock className="w-3.5 h-3.5 text-amber-500" />
+            <span className="font-black text-base text-amber-600">{routeInfo.durationMin} min</span>
+          </div>
+
+          <div className="w-px h-5 bg-border" />
+
+          {/* Free badge */}
+          <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+            🛣 Road Route
+          </span>
+        </div>
+      )}
+
       {/* Map DOM Container */}
       <div ref={mapContainerRef} className="w-full h-full min-h-[400px] z-0" />
+
     </div>
   );
 }

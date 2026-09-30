@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, UtensilsCrossed, Bell, CheckCircle2, XCircle, Loader2, Package, ChevronRight, History, UserCog } from "lucide-react";
+import { Plus, UtensilsCrossed, Bell, CheckCircle2, XCircle, Loader2, Package, ChevronRight, History, UserCog, Award } from "lucide-react";
 import { toast } from "sonner";
 import { useDonations } from "@/hooks/use-donations";
 import { usePickupRequests } from "@/hooks/use-pickup-requests";
@@ -7,6 +7,7 @@ import { DonationCard } from "./DonationCard";
 import { NewDonationForm } from "./NewDonationForm";
 import { StatusBadge } from "./StatusBadge";
 import { MapView } from "./MapView";
+import { ImpactCertificateModal } from "./ImpactCertificateModal";
 
 interface DonorDashboardProps {
   donorId: string;
@@ -15,6 +16,7 @@ interface DonorDashboardProps {
 
 export function DonorDashboard({ donorId, donorName }: DonorDashboardProps) {
   const [showForm, setShowForm] = useState(false);
+  const [showCertificate, setShowCertificate] = useState(false);
   const [activeTab, setActiveTab] = useState<"donations" | "requests" | "history" | "profile">("donations");
   const [processingId, setProcessingId] = useState<string | null>(null);
 
@@ -96,13 +98,22 @@ export function DonorDashboard({ donorId, donorName }: DonorDashboardProps) {
             Your donations are helping fight food waste and hunger.
           </p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-all duration-200 shadow-md shadow-primary/20 active:scale-[0.98] flex-shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          New Donation
-        </button>
+        <div className="flex items-center gap-2.5 flex-shrink-0">
+          <button
+            onClick={() => setShowCertificate(true)}
+            className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-sm font-bold hover:bg-emerald-100 transition-all duration-200 shadow-xs active:scale-[0.98] cursor-pointer"
+          >
+            <Award className="w-4 h-4 text-emerald-600" />
+            Impact Certificate
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-all duration-200 shadow-md shadow-primary/20 active:scale-[0.98] flex-shrink-0 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            New Donation
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -402,6 +413,14 @@ export function DonorDashboard({ donorId, donorName }: DonorDashboardProps) {
         onClose={() => setShowForm(false)}
         onCreated={refetchDonations}
         donorId={donorId}
+      />
+
+      <ImpactCertificateModal
+        isOpen={showCertificate}
+        onClose={() => setShowCertificate(false)}
+        donorName={donorName || "Food Donor"}
+        totalDonations={stats.total}
+        mealsServed={stats.pickedUp * 30 + (stats.total - stats.pickedUp) * 15}
       />
     </div>
   );

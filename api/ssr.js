@@ -9,13 +9,13 @@ const memoryOtpStore = new Map();
 const userPasswordStore = new Map();
 const userFullNameStore = new Map();
 
-const GMAIL_USER = process.env.EMAIL || "himanshu.projectai@gmail.com";
-const GMAIL_PASS = (process.env.EMAIL_PASSWORD || "unqhbprwkfcxvbko").replace(/[\s\u00A0]+/g, "");
-const RESEND_API_KEY = process.env.RESEND_API_KEY || Buffer.from("cmVfOTZqQmZDdjRfOWtRNWQ3V0FzWU53d3F3eU45RjRWeWk4", "base64").toString("utf-8");
-const JWT_SECRET = process.env.JWT_SECRET || "super_secret_jwt_key_for_otp_auth_2026";
+const GMAIL_USER = process.env.EMAIL || "";
+const GMAIL_PASS = (process.env.EMAIL_PASSWORD || "").replace(/[\s\u00A0]+/g, "");
+const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
+const JWT_SECRET = process.env.JWT_SECRET || "";
 
 // Reusable Nodemailer Transporter
-const transporter = nodemailer.createTransport({
+const transporter = GMAIL_USER && GMAIL_PASS ? nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: GMAIL_USER,
@@ -24,7 +24,7 @@ const transporter = nodemailer.createTransport({
   pool: true,
   maxConnections: 3,
   maxMessages: 100,
-});
+}) : null;
 
 function base64UrlEncode(str) {
   const buf = typeof str === "string" ? Buffer.from(str) : str;
@@ -226,7 +226,7 @@ async function handleAuthRoute(pathname, body) {
   if (pathname === "/auth/send-otp" || pathname === "/auth/resend-otp") {
     if (!email) return { status: 400, body: { success: false, error: "Email is required." } };
 
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpCode = crypto.randomInt(100000, 1000000).toString();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
     memoryOtpStore.set(email, { otp: otpCode, expires_at: expiresAt, attempts: 0 });
@@ -279,7 +279,7 @@ async function handleAuthRoute(pathname, body) {
   if (pathname === "/auth/reset-password-otp") {
     if (!email) return { status: 400, body: { success: false, error: "Email is required." } };
 
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpCode = crypto.randomInt(100000, 1000000).toString();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
     memoryOtpStore.set(email, { otp: otpCode, expires_at: expiresAt, attempts: 0 });
@@ -325,11 +325,10 @@ async function handleAuthRoute(pathname, body) {
     }
 
     const savedPass = userPasswordStore.get(email);
-    if (savedPass && savedPass !== password) {
+    if (!savedPass || savedPass !== password) {
       return { status: 401, body: { success: false, error: "Invalid password." } };
     }
 
-    userPasswordStore.set(email, password);
     const userId = `user-${email.replace(/[^a-z0-9]/gi, "_")}`;
     const token = signJwt({ sub: userId, email, role: "donor" });
     return {

@@ -18,6 +18,7 @@ const userPasswordStore = new Map<string, string>();
 const userFullNameStore = new Map<string, string>();
 const registeredUsersStore = new Set<string>();
 const userProvidersStore = new Map<string, Set<string>>();
+const otpRequestRateLimit = new Map<string, number[]>();
 
 const RESEND_COOLDOWN_MS = 60 * 1000; // 60 seconds
 const OTP_EXPIRATION_MS = 5 * 60 * 1000; // 5 minutes
@@ -94,9 +95,7 @@ export async function isUserRegistered(emailInput: string): Promise<boolean> {
 
   if (
     registeredUsersStore.has(email) || 
-    userPasswordStore.has(email) || 
-    userFullNameStore.has(email) ||
-    memoryOtpStore.has(email)
+    userPasswordStore.has(email)
   ) {
     return true;
   }
@@ -104,33 +103,37 @@ export async function isUserRegistered(emailInput: string): Promise<boolean> {
   try {
     const admin = await getSupabaseAdmin();
     if (admin) {
-      const { data } = await admin.auth.admin.listUsers();
-      const existingUser = data?.users?.find((u) => u.email?.toLowerCase() === email);
-      if (existingUser) {
-        recordUserProvider(email, "password");
-        if (existingUser.user_metadata?.full_name) {
-          userFullNameStore.set(email, existingUser.user_metadata.full_name);
+      try {
+        const { data } = await admin.auth.admin.listUsers();
+        const existingUser = data?.users?.find((u) => u.email?.toLowerCase() === email);
+        if (existingUser) {
+          registeredUsersStore.add(email);
+          if (existingUser.user_metadata?.full_name) {
+            userFullNameStore.set(email, existingUser.user_metadata.full_name);
+          }
+          return true;
         }
-        return true;
-      }
+      } catch (_) {}
       
-      const { data: profile } = await admin
-        .from("profiles")
-        .select("id, full_name")
-        .eq("email" as any, email)
-        .maybeSingle();
+      try {
+        const { data: profile } = await admin
+          .from("profiles")
+          .select("id, full_name")
+          .eq("email" as any, email)
+          .maybeSingle();
 
-      if (profile) {
-        recordUserProvider(email, "password");
-        if ((profile as any).full_name) {
-          userFullNameStore.set(email, (profile as any).full_name);
+        if (profile) {
+          registeredUsersStore.add(email);
+          if ((profile as any).full_name) {
+            userFullNameStore.set(email, (profile as any).full_name);
+          }
+          return true;
         }
-        return true;
-      }
+      } catch (_) {}
     }
   } catch (e) {}
 
-  return true;
+  return false;
 }
 
 /**
@@ -162,7 +165,34 @@ export async function requestSendOtp(
     return { success: false, error: "Please enter a valid email address.", status: 400 };
   }
 
-  recordUserProvider(email, "otp");
+  // Prevent sending OTP for account creation if account already exists!
+  if (type === "signup") {
+    const exists = await isUserRegistered(email);
+    if (exists) {
+      return {
+        success: false,
+        alreadyExists: true,
+        error: "Account already exists with this email! Please sign in instead.",
+        status: 409,
+      };
+    }
+  }
+
+  // Rate Limiting: Max 5 OTP requests per 10 minutes per email
+  const nowMs = Date.now();
+  const requestTimestamps = (otpRequestRateLimit.get(email) || []).filter(
+    (t) => nowMs - t < 10 * 60 * 1000
+  );
+  if (requestTimestamps.length >= 5) {
+    return {
+      success: false,
+      error: "Too many OTP requests for this email. Please wait a few minutes before trying again.",
+      status: 429,
+    };
+  }
+  requestTimestamps.push(nowMs);
+  otpRequestRateLimit.set(email, requestTimestamps);
+
   cleanExpiredOtps();
 
   const now = new Date();
@@ -489,16 +519,12 @@ export async function requestVerifyPassword(emailInput: string, passwordInput: s
   }
 
   const activePassword = userPasswordStore.get(email);
-  if (activePassword) {
-    if (activePassword !== password) {
-      return {
-        success: false,
-        error: "Invalid password. Please enter your correct password.",
-        status: 401,
-      };
-    }
-  } else {
-    userPasswordStore.set(email, password);
+  if (!activePassword || activePassword !== password) {
+    return {
+      success: false,
+      error: "Invalid password. Please enter your correct password.",
+      status: 401,
+    };
   }
 
   recordUserProvider(email, "password");

@@ -102,7 +102,8 @@ export function StatsBar() {
       label: "Meals Saved & Shared",
       sublabel: "Redirected from waste",
       icon: UtensilsCrossed,
-      color: "text-emerald-500",
+      color: "text-emerald-400",
+      accentBg: "bg-emerald-500/10 border-emerald-500/25",
       bgGlow: "from-emerald-500/20 to-teal-500/5",
       isFree: false,
     },
@@ -110,9 +111,10 @@ export function StatsBar() {
       value: realStats.donors,
       suffix: realStats.donors > 0 ? "+" : "",
       label: "Verified Food Donors",
-      sublabel: "Hotels, caterers, homes",
+      sublabel: "Hotels, caterers & homes",
       icon: Leaf,
-      color: "text-teal-500",
+      color: "text-teal-400",
+      accentBg: "bg-teal-500/10 border-teal-500/25",
       bgGlow: "from-teal-500/20 to-emerald-500/5",
       isFree: false,
     },
@@ -122,7 +124,8 @@ export function StatsBar() {
       label: "Active Partner NGOs",
       sublabel: "Shelters & food banks",
       icon: Building2,
-      color: "text-amber-500",
+      color: "text-amber-400",
+      accentBg: "bg-amber-500/10 border-amber-500/25",
       bgGlow: "from-amber-500/20 to-orange-500/5",
       isFree: false,
     },
@@ -130,9 +133,10 @@ export function StatsBar() {
       value: 0,
       suffix: "",
       label: "Community Cost",
-      sublabel: "Non-profit initiative",
+      sublabel: "100% Non-profit platform",
       icon: Sparkles,
-      color: "text-sky-500",
+      color: "text-sky-400",
+      accentBg: "bg-sky-500/10 border-sky-500/25",
       bgGlow: "from-sky-500/20 to-blue-500/5",
       isFree: true,
     },
@@ -175,7 +179,7 @@ export function StatsBar() {
               <div className={`absolute inset-0 bg-gradient-to-br ${stat.bgGlow} opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none`} />
 
               <div className="relative z-10 flex items-start justify-between mb-4">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-muted/80 border border-border/80 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-sm">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${stat.accentBg} border group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-sm`}>
                   <Icon className={`w-6 h-6 ${stat.color}`} />
                 </div>
                 <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-wider bg-muted/60 px-2 py-0.5 rounded-md">

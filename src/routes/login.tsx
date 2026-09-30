@@ -252,7 +252,10 @@ function LoginPage() {
     }
   };
 
-  const sendOtpToEmail = async (emailInput: string, otpType: "signup" | "login" = "login"): Promise<boolean> => {
+  const sendOtpToEmail = async (
+    emailInput: string,
+    otpType: "signup" | "login" = "login"
+  ): Promise<{ success: boolean; alreadyExists?: boolean; error?: string }> => {
     const cleanEmail = emailInput.trim().toLowerCase();
 
     try {
@@ -264,8 +267,12 @@ function LoginPage() {
       });
       const data = await res.json();
 
+      if (data?.alreadyExists) {
+        return { success: false, alreadyExists: true, error: data.error };
+      }
+
       // 2. Fire Supabase signInWithOtp in background for login if needed without blocking
-      if (otpType === "login") {
+      if (otpType === "login" && data?.success) {
         getSupabase().then((supabase) => {
           supabase.auth.signInWithOtp({
             email: cleanEmail,
@@ -274,9 +281,9 @@ function LoginPage() {
         });
       }
 
-      return !!data?.success;
+      return { success: !!data?.success, error: data?.error };
     } catch {
-      return false;
+      return { success: false, error: "Network error." };
     }
   };
 
@@ -284,15 +291,14 @@ function LoginPage() {
     e.preventDefault();
     if (!email.trim()) { toast.error("Please enter your email address."); return; }
 
-    // Instant transition — 0ms delay!
-    setStep("verify");
     setOtpSending(true);
 
     try {
-      const ok = await sendOtpToEmail(email, "login");
-      if (!ok) {
-        toast.error("Failed to send OTP. Please check your email.");
+      const res = await sendOtpToEmail(email, "login");
+      if (!res.success) {
+        toast.error(res.error || "Failed to send OTP. Please check your email.");
       } else {
+        setStep("verify");
         toast.success("Verification code dispatched to your email!");
       }
     } catch (err: any) {
@@ -309,47 +315,71 @@ function LoginPage() {
     if (password.length < 6) { toast.error("Password must be at least 6 characters."); return; }
 
     const emailLower = email.trim().toLowerCase();
-
-    if (typeof window !== "undefined") {
-      localStorage.setItem(`registered_name_${emailLower}`, fullName.trim());
-      localStorage.setItem(`registered_role_${emailLower}`, role);
-    }
-
-    // Instant transition — 0ms delay!
-    setStep("verify");
     setOtpSending(true);
 
     try {
       const supabase = await getSupabase();
 
-      // Fire Supabase signup and OTP send in parallel
-      const [signUpRes, ok] = await Promise.all([
-        supabase.auth.signUp({
-          email: emailLower,
-          password,
-          options: {
-            data: { full_name: fullName.trim(), role },
-          },
-        }).catch(() => null),
-        sendOtpToEmail(email, "signup"),
-      ]);
+      // 1. Check if user account already exists in Supabase
+      const signUpRes = await supabase.auth.signUp({
+        email: emailLower,
+        password,
+        options: {
+          data: { full_name: fullName.trim(), role },
+        },
+      });
 
-      if (signUpRes?.error) {
-        if (signUpRes.error.message?.toLowerCase().includes("already registered") ||
-            signUpRes.error.message?.toLowerCase().includes("already exists")) {
-          toast.error("⚠️ Account already exists! Please Sign In instead.");
-          setAuthMode("signin");
-          setAuthMethod("password");
-          setStep("email");
-          return;
-        }
+      // Supabase indicates existing user by:
+      // a) signUpRes.error containing "already registered" / "already exists" / 422
+      // b) signUpRes.data.user returned with empty identities array (identities: [])
+      const isAlreadyRegistered =
+        (signUpRes.error && (
+          signUpRes.error.message?.toLowerCase().includes("already registered") ||
+          signUpRes.error.message?.toLowerCase().includes("already exists") ||
+          signUpRes.error.message?.toLowerCase().includes("already in use") ||
+          (signUpRes.error as any).status === 422 ||
+          (signUpRes.error as any).code === "user_already_exists"
+        )) ||
+        (signUpRes.data?.user && Array.isArray(signUpRes.data.user.identities) && signUpRes.data.user.identities.length === 0);
+
+      if (isAlreadyRegistered) {
+        toast.error("⚠️ Account already exists with this email! Please Sign In instead.");
+        setAuthMode("signin");
+        setAuthMethod("password");
+        setStep("email");
+        return;
       }
 
-      if (ok) {
-        toast.success("Verification code sent! Check your email.");
+      if (signUpRes.error) {
+        toast.error(signUpRes.error.message || "Sign up failed.");
+        return;
       }
+
+      // 2. Account is new! Send OTP to verify email
+      const otpRes = await sendOtpToEmail(emailLower, "signup");
+      if (otpRes.alreadyExists) {
+        toast.error("⚠️ Account already exists with this email! Please Sign In instead.");
+        setAuthMode("signin");
+        setAuthMethod("password");
+        setStep("email");
+        return;
+      }
+
+      if (!otpRes.success) {
+        toast.error(otpRes.error || "Failed to send verification code. Please check your email.");
+        return;
+      }
+
+      // 3. Save pending info and transition to verify screen
+      if (typeof window !== "undefined") {
+        localStorage.setItem(`registered_name_${emailLower}`, fullName.trim());
+        localStorage.setItem(`registered_role_${emailLower}`, role);
+      }
+
+      setStep("verify");
+      toast.success("Verification code sent! Check your email.");
     } catch (err: any) {
-      toast.error(err.message || "Network error.");
+      toast.error(err.message || "Network error. Please try again.");
     } finally {
       setOtpSending(false);
     }
@@ -765,7 +795,7 @@ function LoginPage() {
                     </button>
                   </div>
                   <button type="submit" disabled={otpSending || !fullName.trim() || !email.trim() || password.length < 6} className={submitBtnCls(otpSending)}>
-                    {otpSending ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Sending OTP...</> : <><Send className="w-3.5 h-3.5" /> Create Account via OTP</>}
+                    {otpSending ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Checking & Sending OTP...</> : <><Send className="w-3.5 h-3.5" /> Create Account via OTP</>}
                   </button>
                 </form>
 

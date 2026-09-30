@@ -66,7 +66,10 @@ export function verifyJwt(token: string): JwtPayload | null {
       crypto.createHmac("sha256", secret).update(signatureInput).digest()
     );
 
-    if (encodedSignature !== expectedSignature) {
+    const sigBuf = Buffer.from(encodedSignature);
+    const expectedSigBuf = Buffer.from(expectedSignature);
+
+    if (sigBuf.length !== expectedSigBuf.length || !crypto.timingSafeEqual(sigBuf, expectedSigBuf)) {
       return null;
     }
 

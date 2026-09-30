@@ -23,7 +23,7 @@ skill-pack/
     ├── SKILL.md                        ← the skill (install this)
     └── references/
         ├── 01-tech-stack.md            ← every library + exact version
-        ├── 02-animation-techniques.md  ← Framer Motion, CSS 3D, SVG paths, typewriter
+        ├── 02-animation-techniques.md  ← Framer Motion, CSS 3D, SVG paths, typewriter  
         ├── 03-scroll-animation-deep-dive.md  ← the frame-sequence math
         ├── 04-design-patterns.md       ← neumorphic shadows, palette, typography
         ├── 05-component-architecture.md  ← file layout + SSR rules

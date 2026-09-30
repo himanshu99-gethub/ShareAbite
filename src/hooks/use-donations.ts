@@ -40,15 +40,31 @@ export function useDonations(options?: { donorId?: string; statusFilter?: string
     fetchDonations();
   }, [fetchDonations]);
 
-  // Realtime subscription
+  // Realtime subscription with live feedback toasts
   useEffect(() => {
     let subscription: any = null;
 
-    import("@/integrations/supabase/client").then(({ supabase }) => {
+    import("@/integrations/supabase/client").then(async ({ supabase }) => {
+      const { toast } = await import("sonner");
       subscription = supabase
         .channel("donations-changes")
-        .on("postgres_changes", { event: "*", schema: "public", table: "donations" }, () => {
+        .on("postgres_changes", { event: "*", schema: "public", table: "donations" }, (payload: any) => {
           fetchDonations();
+          if (payload.eventType === "INSERT") {
+            const foodName = payload.new?.food_type || "Food donation";
+            toast.info(`🌱 New donation available: ${foodName}!`, {
+              description: "Check the feed to request pickup.",
+              duration: 4500,
+            });
+          } else if (payload.eventType === "UPDATE") {
+            const foodName = payload.new?.food_type || "Donation";
+            const status = payload.new?.status;
+            if (status === "confirmed") {
+              toast.success(`🎉 Pickup confirmed for: ${foodName}!`);
+            } else if (status === "picked_up") {
+              toast.success(`✅ ${foodName} successfully marked as picked up! 💚`);
+            }
+          }
         })
         .subscribe();
     });

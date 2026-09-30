@@ -37,19 +37,39 @@ function AppPage() {
     const saveRole = async (newRole: "donor" | "receiver") => {
       try {
         const userEmail = (user.email || "").toLowerCase();
-        // Always use the real Supabase user.id as the canonical profile ID
         const canonicalId = profile?.id || user.id;
 
         if (typeof window !== "undefined" && userEmail) {
           localStorage.setItem(`registered_role_${userEmail}`, newRole);
         }
         const { supabase } = await import("@/integrations/supabase/client");
+
+        // ── Account Merge: Check if an OTP profile already exists for this email ──
+        // When Google OAuth user has the same email as a previously OTP-created account,
+        // we upsert using email as the dedup key, preserving the role.
+        const { data: existingByEmail } = await supabase
+          .from("profiles")
+          .select("id, role, full_name")
+          .eq("email" as any, userEmail)
+          .maybeSingle();
+
+        const mergedRole = existingByEmail?.role || newRole;
+        const mergedName = existingByEmail?.full_name
+          || profile?.full_name
+          || user.user_metadata?.full_name
+          || userEmail.split("@")[0];
+
+        // Upsert by email (not id) to handle the Google-vs-OTP merge case
         await supabase.from("profiles").upsert({
           id: canonicalId,
           email: userEmail,
-          role: newRole,
-          full_name: profile?.full_name || user.user_metadata?.full_name || userEmail.split("@")[0]
-        } as any);
+          role: mergedRole,
+          full_name: mergedName,
+        } as any, { onConflict: "id" });
+
+        if (typeof window !== "undefined") {
+          localStorage.setItem(`registered_role_${userEmail}`, mergedRole);
+        }
       } catch (_) {
         // Non-blocking
       } finally {
@@ -70,6 +90,7 @@ function AppPage() {
 
     setRedirectChecked(true);
   }, [user, authLoading, profile, profileLoading, navigate, refetchProfile]);
+
 
   const isLoading = authLoading || profileLoading || !redirectChecked;
 
