@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { X, MapPin, UtensilsCrossed, Package, Clock, Image, Loader2, Navigation, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { loadLeaflet } from "@/lib/leaflet-loader";
+import { getUserLocation } from "@/lib/location-utils";
 
 // ─── Standalone Map Picker Component ────────────────────────────────────────
 interface MapPickerInnerProps {
@@ -172,38 +173,49 @@ export function NewDonationForm({ open, onClose, onCreated, donorId }: NewDonati
     setPhotoPreview(URL.createObjectURL(file));
   };
 
-  const handleGeolocate = () => {
-    if (!navigator.geolocation) {
-      toast.error("Geolocation is not supported by your browser");
-      return;
-    }
+  const handleGeolocate = async () => {
     setIsGeolocating(true);
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        setLatitude(pos.coords.latitude);
-        setLongitude(pos.coords.longitude);
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`
-          );
-          const data = await res.json();
-          if (data.address) {
-            const addr = data.address;
-            if (addr.road || addr.suburb)
-              setStreet([addr.road, addr.suburb].filter(Boolean).join(", "));
-            if (addr.city || addr.town || addr.county || addr.state_district)
-              setCity(addr.city || addr.town || addr.county || addr.state_district || "");
-            if (addr.postcode) setPincode(addr.postcode);
-          }
-        } catch { /* ignore */ }
-        setIsGeolocating(false);
-        toast.success("Location detected ✅");
-      },
-      () => {
-        setIsGeolocating(false);
-        toast.error("Could not get your location");
+    try {
+      const loc = await getUserLocation();
+      setLatitude(loc.lat);
+      setLongitude(loc.lng);
+
+      // Attempt reverse geocoding
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${loc.lat}&lon=${loc.lng}&format=json`,
+          { signal: AbortSignal.timeout(4000) }
+        );
+        const data = await res.json();
+        if (data.address) {
+          const addr = data.address;
+          if (addr.road || addr.suburb)
+            setStreet([addr.road, addr.suburb].filter(Boolean).join(", "));
+          if (addr.city || addr.town || addr.county || addr.state_district)
+            setCity(addr.city || addr.town || addr.county || addr.state_district || "");
+          if (addr.postcode) setPincode(addr.postcode);
+        }
+      } catch {
+        if (loc.city && !city) setCity(loc.city);
       }
-    );
+
+      if (loc.source === "gps-high" || loc.source === "gps-low") {
+        toast.success("GPS Location auto-detected! ✅");
+      } else if (loc.source === "ip-fallback") {
+        toast.info(`City detected: ${loc.city || "Approximate"}. Map me exact location adjust kar sakte hain. 📍`);
+      } else {
+        toast.info("Map par click karke exact location select karein. 📍");
+      }
+
+      if (loc.permissionDenied) {
+        toast.warning("Browser location permission blocked hai. URL bar me 🔒 icon se allow kar sakte hain.");
+      }
+    } catch (err) {
+      console.warn("Geolocate error:", err);
+      toast.error("Location detect nahi ho payi. Kripya map par click karein.");
+    } finally {
+      setIsGeolocating(false);
+    }
   };
 
   const handleMapSelect = useCallback((lat: number, lng: number) => {

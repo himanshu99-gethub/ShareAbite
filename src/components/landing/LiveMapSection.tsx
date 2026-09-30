@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { MapView, NGOProfile } from "@/components/MapView";
 import { useDonations } from "@/hooks/use-donations";
-import { MapPin, ShieldCheck, Clock, Loader2, Radio, Compass, Sparkles, Navigation, ChevronRight } from "lucide-react";
+import { MapPin, ShieldCheck, Clock, Loader2, Radio, Compass, Sparkles, Navigation, ChevronRight, AlertCircle, HelpCircle, CheckCircle2, RefreshCw } from "lucide-react";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
+import { getUserLocation, LocationResult } from "@/lib/location-utils";
+import { toast } from "sonner";
 
 function getDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371;
@@ -25,38 +27,48 @@ export function LiveMapSection() {
   const [isLoadingNgos, setIsLoadingNgos] = useState(true);
   const [userLat, setUserLat] = useState<number | null>(null);
   const [userLng, setUserLng] = useState<number | null>(null);
+  const [userCity, setUserCity] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
-  const [locationStatus, setLocationStatus] = useState<"detecting" | "locked" | "denied">("detecting");
+  const [locationStatus, setLocationStatus] = useState<"detecting" | "locked" | "approximate" | "denied">("detecting");
+  const [showPermissionGuide, setShowPermissionGuide] = useState(false);
   const { ref, isIntersecting } = useIntersectionObserver();
 
-  // Function to acquire user GPS location with high accuracy
-  const requestLocation = useCallback(() => {
-    if (typeof window === "undefined" || !navigator.geolocation) {
-      setLocationStatus("denied");
-      return;
-    }
+  // Robust location acquisition with GPS -> WiFi -> IP-City fallback cascade
+  const requestLocation = useCallback(async () => {
     setIsLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setUserLat(pos.coords.latitude);
-        setUserLng(pos.coords.longitude);
+    try {
+      const res: LocationResult = await getUserLocation();
+      setUserLat(res.lat);
+      setUserLng(res.lng);
+
+      if (res.source === "gps-high" || res.source === "gps-low") {
         setLocationStatus("locked");
-        setIsLocating(false);
-      },
-      (err) => {
-        console.log("GPS Notice:", err.message);
+        if (res.city) setUserCity(res.city);
+        setShowPermissionGuide(false);
+      } else if (res.source === "ip-fallback") {
+        setLocationStatus("approximate");
+        if (res.city) setUserCity(res.city);
+        if (res.permissionDenied) {
+          setShowPermissionGuide(true);
+        }
+      } else {
         setLocationStatus("denied");
-        setIsLocating(false);
-      },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
-    );
+        setShowPermissionGuide(true);
+      }
+    } catch (err) {
+      console.warn("Location acquisition error:", err);
+      setLocationStatus("denied");
+      setShowPermissionGuide(true);
+    } finally {
+      setIsLocating(false);
+    }
   }, []);
 
   // Run on mount
   useEffect(() => {
     requestLocation();
 
-    // Also watch position for live GPS tracking
+    // If browser supports and allows geolocation, listen to live movements
     let watchId: number | null = null;
     if (typeof window !== "undefined" && navigator.geolocation) {
       watchId = navigator.geolocation.watchPosition(
@@ -66,7 +78,7 @@ export function LiveMapSection() {
           setLocationStatus("locked");
         },
         () => {},
-        { enableHighAccuracy: true, maximumAge: 30000 }
+        { enableHighAccuracy: false, maximumAge: 30000 }
       );
     }
 
@@ -177,33 +189,85 @@ export function LiveMapSection() {
           <div className="lg:col-span-4 flex flex-col justify-between gap-5">
             
             {/* GPS Telemetry Pill */}
-            <div className="p-4 rounded-2xl bg-card/90 border border-border/70 backdrop-blur-md shadow-sm flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                  locationStatus === "locked" ? "bg-blue-500/15 text-blue-600 border border-blue-500/30" : "bg-amber-500/15 text-amber-600 border border-amber-500/30"
-                }`}>
-                  <Navigation className={`w-4 h-4 ${isLocating ? "animate-spin" : ""}`} />
+            <div className="p-4 rounded-2xl bg-card/90 border border-border/70 backdrop-blur-md shadow-sm flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                    locationStatus === "locked"
+                      ? "bg-emerald-500/15 text-emerald-600 border border-emerald-500/30"
+                      : locationStatus === "approximate"
+                      ? "bg-blue-500/15 text-blue-600 border border-blue-500/30"
+                      : "bg-amber-500/15 text-amber-600 border border-amber-500/30"
+                  }`}>
+                    <Navigation className={`w-4 h-4 ${isLocating ? "animate-spin" : ""}`} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-foreground">
+                      {locationStatus === "locked" && userLat && userLng
+                        ? `GPS Locked: ${userLat.toFixed(3)}°, ${userLng.toFixed(3)}°`
+                        : locationStatus === "approximate" && userCity
+                        ? `City: ${userCity} (IP Network)`
+                        : locationStatus === "detecting"
+                        ? "Detecting your location..."
+                        : "Browser Permission Blocked"}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {locationStatus === "locked"
+                        ? "Precise device GPS beacon active"
+                        : locationStatus === "approximate"
+                        ? "Connected via approximate city area"
+                        : "Turn on browser location for exact GPS"}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-foreground">
-                    {locationStatus === "locked" && userLat && userLng
-                      ? `GPS Locked: ${userLat.toFixed(3)}°, ${userLng.toFixed(3)}°`
-                      : locationStatus === "detecting"
-                      ? "Detecting your location..."
-                      : "Location Permission Off"}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground">
-                    {locationStatus === "locked" ? "Blue pulsing dot marks your location" : "Click to connect GPS"}
-                  </p>
-                </div>
+                <button
+                  onClick={requestLocation}
+                  disabled={isLocating}
+                  className="text-xs font-bold px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-all active:scale-95 flex items-center gap-1.5"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isLocating ? "animate-spin" : ""}`} />
+                  <span>{isLocating ? "Locating..." : "Locate"}</span>
+                </button>
               </div>
-              <button
-                onClick={requestLocation}
-                disabled={isLocating}
-                className="text-xs font-bold px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-all active:scale-95"
-              >
-                {isLocating ? "Locating..." : "Locate"}
-              </button>
+
+              {/* Permission Help Banner when permission is off or approximate */}
+              {(showPermissionGuide || locationStatus === "denied" || locationStatus === "approximate") && (
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-1.5 font-bold">
+                      <HelpCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                      <span>Browser me Location kaise Allow karein:</span>
+                    </div>
+                    <button
+                      onClick={() => setShowPermissionGuide(!showPermissionGuide)}
+                      className="text-[10px] underline text-amber-700 dark:text-amber-300 font-semibold"
+                    >
+                      {showPermissionGuide ? "Hide" : "Help"}
+                    </button>
+                  </div>
+                  
+                  {showPermissionGuide && (
+                    <ol className="list-decimal pl-4 space-y-1 text-[11px] text-amber-800 dark:text-amber-300/90 leading-tight">
+                      <li>Chrome/Edge ke URL bar me left side <strong>🔒 (Lock ya Tune icon)</strong> par click karein.</li>
+                      <li><strong>"Permissions"</strong> ya <strong>"Location"</strong> ko <strong>"Allow"</strong> select karein.</li>
+                      <li>Neeche <strong>"Retry GPS"</strong> button dabayein!</li>
+                    </ol>
+                  )}
+
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-[10px] text-muted-foreground">
+                      {locationStatus === "approximate" ? "✅ City location fallback chalu hai" : "⚠️ Default coordinates use ho rhe hain"}
+                    </span>
+                    <button
+                      onClick={requestLocation}
+                      disabled={isLocating}
+                      className="text-[11px] font-bold px-2.5 py-1 rounded-md bg-amber-600 text-white hover:bg-amber-700 transition-colors"
+                    >
+                      Retry GPS
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Active Donations Stat Card */}
@@ -278,15 +342,46 @@ export function LiveMapSection() {
             {/* Top Specular Rim */}
             <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent" />
 
-            {/* Live Feed Pill */}
+            {/* Live Feed Dynamic Pill */}
             <div className="absolute top-7 right-7 bg-background/95 backdrop-blur-xl px-4 py-2 rounded-2xl border border-border/70 shadow-lg flex items-center gap-2.5 z-10">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-              </span>
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-foreground">
-                Real-Time Geolocation Active
-              </span>
+              {locationStatus === "locked" ? (
+                <>
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                  </span>
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                    Live GPS Locked
+                  </span>
+                </>
+              ) : locationStatus === "approximate" ? (
+                <>
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-blue-500"></span>
+                  </span>
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+                    {userCity ? `${userCity} Area Active` : "City Location Active"}
+                  </span>
+                </>
+              ) : locationStatus === "detecting" ? (
+                <>
+                  <Loader2 className="w-3 h-3 animate-spin text-amber-500" />
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                    Detecting Location...
+                  </span>
+                </>
+              ) : (
+                <button
+                  onClick={() => setShowPermissionGuide(true)}
+                  className="flex items-center gap-1.5 hover:underline"
+                >
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                    GPS Blocked (Click For Help)
+                  </span>
+                </button>
+              )}
             </div>
 
             {isLoadingDonations && isLoadingNgos ? (

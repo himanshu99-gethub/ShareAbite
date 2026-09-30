@@ -5,6 +5,7 @@ import { useDonations } from "@/hooks/use-donations";
 import { usePickupRequests } from "@/hooks/use-pickup-requests";
 import { DonationCard } from "./DonationCard";
 import { MapView } from "./MapView";
+import { getUserLocation } from "@/lib/location-utils";
 
 interface ReceiverDashboardProps {
   receiverId: string;
@@ -40,17 +41,16 @@ export function ReceiverDashboard({ receiverId, receiverName }: ReceiverDashboar
     receiverId,
   });
 
-  // Request geolocation on mount
+  // Request geolocation on mount with IP fallback
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setUserLat(pos.coords.latitude);
-          setUserLng(pos.coords.longitude);
-        },
-        () => {} // silent fail
-      );
-    }
+    let isMounted = true;
+    getUserLocation().then((loc) => {
+      if (isMounted) {
+        setUserLat(loc.lat);
+        setUserLng(loc.lng);
+      }
+    }).catch(() => {});
+    return () => { isMounted = false; };
   }, []);
 
   const myRequestedDonationIds = new Set(requests.map((r) => r.donation_id));

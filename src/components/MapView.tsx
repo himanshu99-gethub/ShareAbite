@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import type { Donation } from "@/hooks/use-donations";
 import { loadLeaflet } from "@/lib/leaflet-loader";
 import { Compass, Locate, ZoomIn, ZoomOut, Loader2, Navigation, Route, Clock, Ruler, Layers } from "lucide-react";
+import { toast } from "sonner";
+import { getUserLocation } from "@/lib/location-utils";
 
 /** Free OSRM routing — no API key needed */
 async function fetchOsrmRoute(
@@ -453,21 +455,44 @@ export function MapView({
     if (mapInstanceRef.current) mapInstanceRef.current.zoomOut();
   }, []);
 
-  const handleLocateMe = useCallback(() => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.flyTo(
-            [pos.coords.latitude, pos.coords.longitude],
-            15,
-            { duration: 1.2 }
-          );
+  const [isLocatingMe, setIsLocatingMe] = useState(false);
+
+  const handleLocateMe = useCallback(async () => {
+    setIsLocatingMe(true);
+    try {
+      const loc = await getUserLocation();
+      const L = (window as any).L;
+
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.flyTo([loc.lat, loc.lng], 15, { duration: 1.2 });
+
+        if (L && !userMarkerRef.current) {
+          userMarkerRef.current = L.circleMarker([loc.lat, loc.lng], {
+            radius: 10,
+            fillColor: "#2563eb",
+            fillOpacity: 1,
+            color: "#ffffff",
+            weight: 3,
+          })
+            .bindPopup(`<strong style="font-family:system-ui">📍 Your Location${loc.city ? ` (${loc.city})` : ""}</strong>`)
+            .addTo(mapInstanceRef.current);
+        } else if (userMarkerRef.current) {
+          userMarkerRef.current.setLatLng([loc.lat, loc.lng]);
         }
-      },
-      (err) => console.log("Geolocation error:", err),
-      { enableHighAccuracy: true }
-    );
+      }
+
+      if (loc.permissionDenied) {
+        toast.error("Location blocked in browser! To allow exact GPS, click the lock 🔒 icon in your browser address bar and enable Location.", { duration: 6000 });
+      } else if (loc.isApproximate) {
+        toast.info(`Using approximate city location (${loc.city || "your area"}). Allow browser location for exact GPS.`);
+      } else {
+        toast.success("Live GPS Location Locked!");
+      }
+    } catch (err: any) {
+      toast.error("Could not determine location. Please allow location in your browser settings.");
+    } finally {
+      setIsLocatingMe(false);
+    }
   }, []);
 
   const handleResetBounds = useCallback(() => {
@@ -512,10 +537,15 @@ export function MapView({
         <button
           type="button"
           onClick={handleLocateMe}
+          disabled={isLocatingMe}
           title="Center on My Live Location"
-          className="w-10 h-10 rounded-xl bg-background/95 hover:bg-background text-foreground border border-border/80 shadow-lg backdrop-blur-md flex items-center justify-center transition-all hover:scale-105 active:scale-95 group"
+          className="w-10 h-10 rounded-xl bg-background/95 hover:bg-background text-foreground border border-border/80 shadow-lg backdrop-blur-md flex items-center justify-center transition-all hover:scale-105 active:scale-95 group disabled:opacity-60"
         >
-          <Locate className="w-5 h-5 text-blue-600 group-hover:animate-pulse" />
+          {isLocatingMe ? (
+            <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+          ) : (
+            <Locate className="w-5 h-5 text-blue-600 group-hover:animate-pulse" />
+          )}
         </button>
 
         {markersRef.current.length > 1 && (

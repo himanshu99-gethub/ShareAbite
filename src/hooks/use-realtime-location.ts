@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { getUserLocation } from "@/lib/location-utils";
 
 export interface LiveLocationState {
   lat: number | null;
@@ -138,12 +139,23 @@ export function useRealTimeLocation(
         else if (err.code === 3)
           msg = "Location request timed out.";
 
-        setState((s) => ({
-          ...s,
-          error: msg,
-          isTracking: false,
-          permissionStatus: err.code === 1 ? "denied" : s.permissionStatus,
-        }));
+        getUserLocation().then((loc) => {
+          setState((s) => ({
+            ...s,
+            lat: s.lat ?? loc.lat,
+            lng: s.lng ?? loc.lng,
+            error: msg,
+            isTracking: false,
+            permissionStatus: err.code === 1 ? "denied" : s.permissionStatus,
+          }));
+        }).catch(() => {
+          setState((s) => ({
+            ...s,
+            error: msg,
+            isTracking: false,
+            permissionStatus: err.code === 1 ? "denied" : s.permissionStatus,
+          }));
+        });
       },
       { enableHighAccuracy, maximumAge: maxAge, timeout }
     );
