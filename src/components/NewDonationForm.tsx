@@ -149,6 +149,11 @@ export function NewDonationForm({ open, onClose, onCreated, donorId }: NewDonati
   const [showMapPicker, setShowMapPicker] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const handleMapSelect = useCallback((lat: number, lng: number) => {
+    setLatitude(lat);
+    setLongitude(lng);
+  }, []);
+
   // Listen for reverse geocode results from map clicks
   useEffect(() => {
     const handler = (e: Event) => {
@@ -217,11 +222,6 @@ export function NewDonationForm({ open, onClose, onCreated, donorId }: NewDonati
       setIsGeolocating(false);
     }
   };
-
-  const handleMapSelect = useCallback((lat: number, lng: number) => {
-    setLatitude(lat);
-    setLongitude(lng);
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
