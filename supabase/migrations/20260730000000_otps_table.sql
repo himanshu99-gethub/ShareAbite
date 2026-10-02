@@ -15,8 +15,9 @@ create index if not exists idx_otps_email_created on public.otps(email, created_
 -- Enable RLS
 alter table public.otps enable row level security;
 
--- Policy allowing system operations (service role bypasses RLS)
+-- Policy allowing system operations (service role only; public/anon denied by default RLS)
 create policy "Allow service role full access to otps"
   on public.otps for all
+  to service_role
   using (true)
   with check (true);

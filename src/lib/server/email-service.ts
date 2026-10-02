@@ -92,13 +92,21 @@ export function renderEmailContent(otp: string, type: "login" | "reset_password"
  */
 export async function sendOtpEmail({ to, otp, type = "login" }: SendEmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
   const currentEnv = getFreshEnv();
-  const resendApiKey = currentEnv.RESEND_API_KEY || process.env.RESEND_API_KEY || Buffer.from("cmVfOTZqQmZDdjRfOWtRNWQ3V0FzWU53d3F3eU45RjRWeWk4", "base64").toString("utf-8");
-  const rawEmail = currentEnv.EMAIL || process.env.EMAIL || "himanshu.projectai@gmail.com";
-  const rawPass = currentEnv.EMAIL_PASSWORD || process.env.EMAIL_PASSWORD || "unqhbprwkfcxvbko";
+  const resendApiKey = (currentEnv.RESEND_API_KEY || process.env.RESEND_API_KEY || "").trim();
+  const rawEmail = (currentEnv.EMAIL || process.env.EMAIL || "").trim();
+  const rawPass = (currentEnv.EMAIL_PASSWORD || process.env.EMAIL_PASSWORD || "").trim();
   const smtpServer = (currentEnv.SMTP_SERVER || process.env.SMTP_SERVER || "smtp.gmail.com").trim();
 
+  if (!rawEmail && !resendApiKey) {
+    console.error("[EmailService] No email provider configured. Please set EMAIL/EMAIL_PASSWORD or RESEND_API_KEY in environment variables.");
+    return {
+      success: false,
+      error: "Email delivery service is not configured. Please configure email credentials in your environment variables.",
+    };
+  }
+
   // Clean email and strip ALL spaces and non-breaking spaces (\u00A0) from App Password
-  const emailUser = rawEmail.trim();
+  const emailUser = rawEmail;
   const emailPass = rawPass.replace(/[\s\u00A0]+/g, "");
 
   const { subject, textBody, htmlBody } = renderEmailContent(otp, type);
@@ -162,6 +170,13 @@ export async function sendOtpEmail({ to, otp, type = "login" }: SendEmailOptions
 
 
   // Direct SSL on Port 465 (Fastest & most reliable for Gmail)
+  if (!emailUser || !emailPass) {
+    return {
+      success: false,
+      error: "Failed to send OTP email: email delivery credentials not configured or rejected by provider.",
+    };
+  }
+
   return new Promise((resolve) => {
     let resolved = false;
 

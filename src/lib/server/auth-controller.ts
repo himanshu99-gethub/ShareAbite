@@ -17,7 +17,7 @@ export async function handleSendOtpRequest(body: any) {
     return { status: result.status || 200, body: result };
   } catch (err: any) {
     console.error("[AuthController] Error in send-otp:", err);
-    return { status: 500, body: { success: false, error: err?.message || "Internal server error." } };
+    return { status: 500, body: { success: false, error: "An unexpected error occurred while sending OTP. Please try again." } };
   }
 }
 
@@ -31,7 +31,7 @@ export async function handleVerifyOtpRequest(body: any) {
     return { status: result.status || 200, body: result };
   } catch (err: any) {
     console.error("[AuthController] Error in verify-otp:", err);
-    return { status: 500, body: { success: false, error: err?.message || "Internal server error." } };
+    return { status: 500, body: { success: false, error: "An unexpected error occurred while verifying OTP. Please try again." } };
   }
 }
 
@@ -45,7 +45,7 @@ export async function handleResendOtpRequest(body: any) {
     return { status: result.status || 200, body: result };
   } catch (err: any) {
     console.error("[AuthController] Error in resend-otp:", err);
-    return { status: 500, body: { success: false, error: err?.message || "Internal server error." } };
+    return { status: 500, body: { success: false, error: "An unexpected error occurred while resending OTP. Please try again." } };
   }
 }
 
@@ -59,7 +59,7 @@ export async function handleResetPasswordOtpRequest(body: any) {
     return { status: result.status || 200, body: result };
   } catch (err: any) {
     console.error("[AuthController] Error in reset-password-otp:", err);
-    return { status: 500, body: { success: false, error: err?.message || "Internal server error." } };
+    return { status: 500, body: { success: false, error: "An unexpected error occurred while requesting password reset. Please try again." } };
   }
 }
 
@@ -73,7 +73,7 @@ export async function handleConfirmPasswordResetRequest(body: any) {
     return { status: result.status || 200, body: result };
   } catch (err: any) {
     console.error("[AuthController] Error in confirm-password-reset:", err);
-    return { status: 500, body: { success: false, error: err?.message || "Internal server error." } };
+    return { status: 500, body: { success: false, error: "An unexpected error occurred while resetting password. Please try again." } };
   }
 }
 
@@ -87,6 +87,6 @@ export async function handleVerifyPasswordRequest(body: any) {
     return { status: result.status || 200, body: result };
   } catch (err: any) {
     console.error("[AuthController] Error in verify-password:", err);
-    return { status: 500, body: { success: false, error: err?.message || "Internal server error." } };
+    return { status: 500, body: { success: false, error: "An unexpected error occurred while verifying password. Please try again." } };
   }
 }

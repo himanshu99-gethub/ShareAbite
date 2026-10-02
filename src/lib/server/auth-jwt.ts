@@ -25,7 +25,8 @@ function base64UrlDecode(str: string): string {
  * Signs a JWT access token using HMAC-SHA256.
  */
 export function signJwt(payload: Omit<JwtPayload, "iat" | "exp">, expiresInSeconds = 7 * 24 * 3600): string {
-  const secret = process.env.JWT_SECRET || "super_secret_jwt_key_for_otp_auth_2026";
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error("[auth-jwt] JWT_SECRET environment variable is not set. Set it in your .env file.");
   const now = Math.floor(Date.now() / 1000);
   
   const fullPayload: JwtPayload = {
@@ -55,7 +56,8 @@ export function signJwt(payload: Omit<JwtPayload, "iat" | "exp">, expiresInSecon
  */
 export function verifyJwt(token: string): JwtPayload | null {
   try {
-    const secret = process.env.JWT_SECRET || "super_secret_jwt_key_for_otp_auth_2026";
+    const secret = process.env.JWT_SECRET;
+    if (!secret) return null; // Cannot verify without secret — fail safe
     const parts = token.split(".");
     if (parts.length !== 3) return null;
 

@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { generateOtp, isValidEmail } from "./otp-generator";
 import { sendOtpEmail } from "./email-service";
 import { signJwt } from "./auth-jwt";
@@ -14,9 +15,14 @@ export interface OtpRecord {
 
 // In-memory fallback store for ultra-reliable OTP tracking, password state & registered users
 const memoryOtpStore = new Map<string, OtpRecord[]>();
-const userPasswordStore = new Map<string, string>();
+// Secure salted PBKDF2 hash store for offline/fallback mode (never plaintext)
+const userPasswordHashStore = new Map<string, { hash: string; salt: string }>();
 const userFullNameStore = new Map<string, string>();
 const registeredUsersStore = new Set<string>();
+
+function hashPassword(password: string, salt: string): string {
+  return crypto.pbkdf2Sync(password, salt, 100000, 64, "sha512").toString("hex");
+}
 const userProvidersStore = new Map<string, Set<string>>();
 const otpRequestRateLimit = new Map<string, number[]>();
 
@@ -95,7 +101,7 @@ export async function isUserRegistered(emailInput: string): Promise<boolean> {
 
   if (
     registeredUsersStore.has(email) || 
-    userPasswordStore.has(email)
+    userPasswordHashStore.has(email)
   ) {
     return true;
   }
@@ -358,7 +364,8 @@ export async function requestVerifyOtp(
   recordUserProvider(email, "otp");
 
   if (passwordInput) {
-    userPasswordStore.set(email, passwordInput);
+    const salt = crypto.randomBytes(16).toString("hex");
+    userPasswordHashStore.set(email, { hash: hashPassword(passwordInput, salt), salt });
     recordUserProvider(email, "password");
   }
 
@@ -447,7 +454,8 @@ export async function requestConfirmPasswordReset(emailInput: string, otpInput: 
 
   targetRecord.is_used = true;
   recordUserProvider(email, "password");
-  userPasswordStore.set(email, newPassword);
+  const salt = crypto.randomBytes(16).toString("hex");
+  userPasswordHashStore.set(email, { hash: hashPassword(newPassword, salt), salt });
 
   const userId = await getStableUserId(email);
   let role: "donor" | "receiver" = "donor";
@@ -485,6 +493,7 @@ export async function requestConfirmPasswordReset(emailInput: string, otpInput: 
 
 /**
  * Strictly verifies user password and returns the PERMANENT Google / Email account ID.
+ * Validates against Supabase Auth (bcrypt) primarily, with PBKDF2-hashed fallback.
  */
 export async function requestVerifyPassword(emailInput: string, passwordInput: string) {
   const email = emailInput?.trim().toLowerCase();
@@ -496,7 +505,50 @@ export async function requestVerifyPassword(emailInput: string, passwordInput: s
 
   let registeredName = userFullNameStore.get(email);
   const userId = await getStableUserId(email);
+  let userRole: "donor" | "receiver" = "donor";
+  let authenticated = false;
 
+  // 1. Primary secure check: Supabase Auth (uses bcrypt)
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+  if (supabaseUrl && supabaseAnonKey && !supabaseUrl.includes("placeholder")) {
+    try {
+      const { createClient } = await import("@supabase/supabase-js");
+      const client = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const { data: authData, error: authError } = await client.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (authData?.user && !authError) {
+        authenticated = true;
+        const meta = authData.user.user_metadata || {};
+        if (meta.full_name) registeredName = meta.full_name;
+        if (meta.role === "donor" || meta.role === "receiver") userRole = meta.role;
+      }
+    } catch (authException) {
+      console.warn("[OtpService] Supabase auth attempt:", authException);
+    }
+  }
+
+  // 2. Fallback check: PBKDF2 hashed password store
+  if (!authenticated) {
+    const storedCreds = userPasswordHashStore.get(email);
+    if (storedCreds) {
+      const computedHash = hashPassword(password, storedCreds.salt);
+      // Constant-time buffer comparison to prevent timing attacks
+      const computedBuf = Buffer.from(computedHash, "hex");
+      const storedBuf = Buffer.from(storedCreds.hash, "hex");
+      if (computedBuf.length === storedBuf.length && crypto.timingSafeEqual(computedBuf, storedBuf)) {
+        authenticated = true;
+      }
+    }
+  }
+
+  // Try to populate user details from admin client if available
   try {
     const admin = await getSupabaseAdmin();
     if (admin) {
@@ -507,9 +559,9 @@ export async function requestVerifyPassword(emailInput: string, passwordInput: s
           registeredName = existingUser.user_metadata.full_name;
           userFullNameStore.set(email, registeredName);
         }
-        try {
-          await admin.auth.admin.updateUserById(existingUser.id, { password });
-        } catch (e) {}
+        if (existingUser.user_metadata?.role === "donor" || existingUser.user_metadata?.role === "receiver") {
+          userRole = existingUser.user_metadata.role;
+        }
       }
     }
   } catch (e) {}
@@ -518,25 +570,24 @@ export async function requestVerifyPassword(emailInput: string, passwordInput: s
     registeredName = email.split("@")[0];
   }
 
-  const activePassword = userPasswordStore.get(email);
-  if (!activePassword || activePassword !== password) {
+  if (!authenticated) {
     return {
       success: false,
-      error: "Invalid password. Please enter your correct password.",
+      error: "Invalid email or password. Please enter your correct credentials.",
       status: 401,
     };
   }
 
   recordUserProvider(email, "password");
 
-  const token = signJwt({ sub: userId, email, role: "donor" });
+  const token = signJwt({ sub: userId, email, role: userRole });
   return {
     success: true,
     token,
     user: {
       id: userId,
       email,
-      role: "donor",
+      role: userRole,
       full_name: registeredName,
     },
   };

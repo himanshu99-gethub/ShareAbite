@@ -242,7 +242,7 @@ function authApiPlugin() {
             console.error(`[authApiPlugin] Server processing error:`, err);
             res.statusCode = 500;
             res.setHeader("Content-Type", "application/json");
-            return res.end(JSON.stringify({ success: false, error: err?.message || "Internal server error." }));
+            return res.end(JSON.stringify({ success: false, error: "Internal server error." }));
           }
         });
       });
@@ -262,6 +262,9 @@ export default defineConfig(({ mode }) => {
     server: {
       host: "::",
       port: 8080,
+    },
+    build: {
+      sourcemap: false,
     },
     define: envDefine,
     resolve: {
