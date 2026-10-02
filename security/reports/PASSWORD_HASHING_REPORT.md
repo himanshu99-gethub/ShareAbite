@@ -1,6 +1,9 @@
 # PASSWORD_HASHING Security Report
 
-## Status: MEDIUM
+## Status: 🟢 RESOLVED / FIXED (2026-10-02)
+
+> **Resolution Summary:**  
+> The plaintext `userPasswordStore` has been completely removed from `src/lib/server/otp-service.ts`. Password verification now validates directly through **Supabase Auth (`signInWithPassword` using bcrypt)** as the primary authority, and offline/fallback passwords are encrypted with **PBKDF2 salted hashing** (`crypto.pbkdf2Sync` with 100,000 iterations of SHA-512) and verified using constant-time comparison (`crypto.timingSafeEqual`). Passwords are never stored or compared in plaintext.
 
 ## Findings
 
