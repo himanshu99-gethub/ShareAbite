@@ -27,7 +27,7 @@ function AppPage() {
     if (authLoading || profileLoading) return;
 
     if (!user) {
-      navigate({ to: "/login" });
+      navigate({ to: "/login", replace: true });
       return;
     }
 

@@ -4,9 +4,16 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     // Only initialize in browser environment
     if (typeof window === "undefined") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     let lenisInstance: any = null;
     let rafId: number;
+    let isDocumentVisible = document.visibilityState === "visible";
+
+    const handleVisibilityChange = () => {
+      isDocumentVisible = document.visibilityState === "visible";
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     import("lenis")
       .then(({ default: Lenis }) => {
@@ -21,7 +28,7 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
         });
 
         function raf(time: number) {
-          lenisInstance?.raf(time);
+          if (isDocumentVisible) lenisInstance?.raf(time);
           rafId = requestAnimationFrame(raf);
         }
 
@@ -34,6 +41,7 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
     return () => {
       if (rafId) cancelAnimationFrame(rafId);
       if (lenisInstance) lenisInstance.destroy();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 

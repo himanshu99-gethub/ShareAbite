@@ -9,7 +9,6 @@ import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 import { FinalCTA } from "@/components/landing/FinalCTA";
 import { Footer } from "@/components/landing/Footer";
-import { LiveMapSection } from "@/components/landing/LiveMapSection";
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
@@ -27,7 +26,7 @@ function LandingPage() {
   useEffect(() => {
     import("@/integrations/supabase/client").then(({ supabase }) => {
       supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session?.user) navigate({ to: "/app" });
+        if (session?.user) navigate({ to: "/app", replace: true });
       });
     }).catch(() => {});
   }, [navigate]);
@@ -39,7 +38,6 @@ function LandingPage() {
       <ImpactDashboard />
       <FeaturesSection />
       <HowItWorksSection />
-      <LiveMapSection />
       <TestimonialsSection />
       <FinalCTA />
       <Footer />

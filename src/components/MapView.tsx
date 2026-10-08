@@ -3,7 +3,7 @@ import type { Donation } from "@/hooks/use-donations";
 import { loadLeaflet } from "@/lib/leaflet-loader";
 import { Compass, Locate, ZoomIn, ZoomOut, Loader2, Navigation, Route, Clock, Ruler, Layers } from "lucide-react";
 import { toast } from "sonner";
-import { getUserLocation } from "@/lib/location-utils";
+import { getPreciseUserLocation } from "@/lib/location-utils";
 
 /** Free OSRM routing — no API key needed */
 async function fetchOsrmRoute(
@@ -76,6 +76,7 @@ export function MapView({
   const routeLayerRef = useRef<any>(null);          // OSRM road route layer
   const [isLeafletReady, setIsLeafletReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [routeInfo, setRouteInfo] = useState<{ distanceKm: number; durationMin: number } | null>(null);
   const [routeLoading, setRouteLoading] = useState(false);
   const initialCenterDoneRef = useRef(false);
@@ -99,7 +100,7 @@ export function MapView({
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [loadAttempt]);
 
   // 2. Initialize Map Instance
   useEffect(() => {
@@ -460,7 +461,7 @@ export function MapView({
   const handleLocateMe = useCallback(async () => {
     setIsLocatingMe(true);
     try {
-      const loc = await getUserLocation();
+      const loc = await getPreciseUserLocation();
       const L = (window as any).L;
 
       if (mapInstanceRef.current) {
@@ -481,15 +482,15 @@ export function MapView({
         }
       }
 
-      if (loc.permissionDenied) {
-        toast.error("Location blocked in browser! To allow exact GPS, click the lock 🔒 icon in your browser address bar and enable Location.", { duration: 6000 });
-      } else if (loc.isApproximate) {
-        toast.info(`Using approximate city location (${loc.city || "your area"}). Allow browser location for exact GPS.`);
-      } else {
-        toast.success("Live GPS Location Locked!");
-      }
+      toast.success(
+        `Live GPS location locked${loc.accuracy ? ` (±${Math.round(loc.accuracy)}m)` : ""}!`
+      );
     } catch (err: any) {
-      toast.error("Could not determine location. Please allow location in your browser settings.");
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Could not determine exact GPS location. Please allow location in your browser settings."
+      );
     } finally {
       setIsLocatingMe(false);
     }
@@ -524,10 +525,14 @@ export function MapView({
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center bg-card/90">
           <p className="text-sm font-bold text-destructive mb-2">{loadError}</p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => {
+              setLoadError(null);
+              setIsLeafletReady(false);
+              setLoadAttempt((attempt) => attempt + 1);
+            }}
             className="px-4 py-2 text-xs font-bold bg-primary text-primary-foreground rounded-xl shadow"
           >
-            Retry Connection
+            Retry Map
           </button>
         </div>
       )}

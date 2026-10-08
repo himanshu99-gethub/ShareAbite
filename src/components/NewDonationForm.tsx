@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { X, MapPin, UtensilsCrossed, Package, Clock, Image, Loader2, Navigation, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { loadLeaflet } from "@/lib/leaflet-loader";
-import { getUserLocation } from "@/lib/location-utils";
+import { getPreciseUserLocation } from "@/lib/location-utils";
 
 // ─── Standalone Map Picker Component ────────────────────────────────────────
 interface MapPickerInnerProps {
@@ -16,6 +16,7 @@ function MapPickerInner({ initLat, initLng, onSelect }: MapPickerInnerProps) {
   const mapRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
   const [isMapReady, setIsMapReady] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
 
   const onSelectRef = useRef(onSelect);
   useEffect(() => {
@@ -28,7 +29,10 @@ function MapPickerInner({ initLat, initLng, onSelect }: MapPickerInnerProps) {
       .then(() => {
         if (active) setIsMapReady(true);
       })
-      .catch((err) => console.error("Map picker leaflet error:", err));
+      .catch((err) => {
+        console.error("Map picker leaflet error:", err);
+        if (active) setMapError("Map load nahi hua. Internet check karke retry karein.");
+      });
 
     return () => {
       active = false;
@@ -107,17 +111,14 @@ function MapPickerInner({ initLat, initLng, onSelect }: MapPickerInnerProps) {
   }, [isMapReady, initLat, initLng]);
 
   return (
-    <div
-      ref={divRef}
-      style={{
-        height: "260px",
-        width: "100%",
-        display: "block",
-        position: "relative",
-        zIndex: 0,
-        background: "#e8f4e8",
-      }}
-    />
+    <div className="relative h-[260px] w-full bg-emerald-50">
+      <div ref={divRef} className="h-full w-full" />
+      {!isMapReady && (
+        <div className="absolute inset-0 flex items-center justify-center bg-emerald-50/90 text-center text-xs font-semibold text-muted-foreground">
+          {mapError || "Map load ho raha hai..."}
+        </div>
+      )}
+    </div>
   );
 }
 // ────────────────────────────────────────────────────────────────────────────
@@ -174,6 +175,15 @@ export function NewDonationForm({ open, onClose, onCreated, donorId }: NewDonati
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size 5 MB se kam honi chahiye.");
+      return;
+    }
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
     setPhotoFile(file);
     setPhotoPreview(URL.createObjectURL(file));
   };
@@ -181,7 +191,7 @@ export function NewDonationForm({ open, onClose, onCreated, donorId }: NewDonati
   const handleGeolocate = async () => {
     setIsGeolocating(true);
     try {
-      const loc = await getUserLocation();
+      const loc = await getPreciseUserLocation();
       setLatitude(loc.lat);
       setLongitude(loc.lng);
 
@@ -204,20 +214,16 @@ export function NewDonationForm({ open, onClose, onCreated, donorId }: NewDonati
         if (loc.city && !city) setCity(loc.city);
       }
 
-      if (loc.source === "gps-high" || loc.source === "gps-low") {
-        toast.success("GPS Location auto-detected! ✅");
-      } else if (loc.source === "ip-fallback") {
-        toast.info(`City detected: ${loc.city || "Approximate"}. Map me exact location adjust kar sakte hain. 📍`);
-      } else {
-        toast.info("Map par click karke exact location select karein. 📍");
-      }
-
-      if (loc.permissionDenied) {
-        toast.warning("Browser location permission blocked hai. URL bar me 🔒 icon se allow kar sakte hain.");
-      }
+      toast.success(
+        `Exact GPS location detected${loc.accuracy ? ` (±${Math.round(loc.accuracy)}m)` : ""}! ✅`
+      );
     } catch (err) {
       console.warn("Geolocate error:", err);
-      toast.error("Location detect nahi ho payi. Kripya map par click karein.");
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Exact GPS location detect nahi ho payi. Kripya map par click karein."
+      );
     } finally {
       setIsGeolocating(false);
     }
@@ -231,7 +237,7 @@ export function NewDonationForm({ open, onClose, onCreated, donorId }: NewDonati
       toast.error("Please fill in all required fields");
       return;
     }
-    if (!latitude || !longitude) {
+    if (latitude === null || longitude === null) {
       toast.error("Please select your location on the map or use Live Location");
       return;
     }
@@ -239,7 +245,13 @@ export function NewDonationForm({ open, onClose, onCreated, donorId }: NewDonati
       toast.error("Please enter your contact phone number");
       return;
     }
-    if (new Date(windowEnd) <= new Date(windowStart)) {
+    const startDate = new Date(windowStart);
+    const endDate = new Date(windowEnd);
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+      toast.error("Please enter valid pickup dates and times");
+      return;
+    }
+    if (endDate <= startDate) {
       toast.error("Pickup end time must be after start time");
       return;
     }
@@ -269,8 +281,8 @@ export function NewDonationForm({ open, onClose, onCreated, donorId }: NewDonati
         latitude,
         longitude,
         contact_phone: contactPhone.trim(),
-        pickup_window_start: new Date(windowStart).toISOString(),
-        pickup_window_end: new Date(windowEnd).toISOString(),
+        pickup_window_start: startDate.toISOString(),
+        pickup_window_end: endDate.toISOString(),
         status: "available",
       } as any);
 
@@ -282,6 +294,7 @@ export function NewDonationForm({ open, onClose, onCreated, donorId }: NewDonati
       setFoodType(""); setQuantity(""); setDescription("");
       setHouseNo(""); setStreet(""); setCity(""); setPincode("");
       setLatitude(null); setLongitude(null); setWindowStart(""); setWindowEnd("");
+      if (photoPreview) URL.revokeObjectURL(photoPreview);
       setPhotoFile(null); setPhotoPreview(null); setContactPhone("");
       setShowMapPicker(false);
     } catch (err: any) {

@@ -36,7 +36,7 @@ export function Login3dBackground() {
     let height = (canvas.height = window.innerHeight);
 
     // Retina DPR scaling
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     const setSize = () => {
       if (!canvas) return;
       width = window.innerWidth;
@@ -72,7 +72,7 @@ export function Login3dBackground() {
 
     // ── 1. Floating 3D Network Nodes ──
     const isMobile = window.innerWidth < 768;
-    const nodeCount = isMobile ? 26 : 46;
+    const nodeCount = isMobile ? 18 : 32;
     const nodes: Node3D[] = [];
 
     const colorPalettes = [
@@ -101,15 +101,24 @@ export function Login3dBackground() {
     const pulses: Pulse[] = [];
 
     // ── 3. 3D Wave Terrain Grid (Undulating Ground Field) ──
-    const cols = isMobile ? 16 : 28;
-    const rows = isMobile ? 10 : 16;
+    const cols = isMobile ? 12 : 22;
+    const rows = isMobile ? 8 : 12;
     const gridSpacing = isMobile ? 50 : 65;
 
     let time = 0;
+    let lastFrameTime = 0;
+    let isVisible = true;
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const fov = 400; // Camera Field of View
     const cameraZ = 600;
 
     const render = () => {
+      const now = performance.now();
+      if (!prefersReducedMotion && now - lastFrameTime < 33) {
+        animationFrameId = requestAnimationFrame(render);
+        return;
+      }
+      lastFrameTime = now;
       time += 0.015;
 
       // Spring interpolation for smooth camera tilt
@@ -343,9 +352,23 @@ export function Login3dBackground() {
         ctx.fill();
       }
 
-      animationFrameId = requestAnimationFrame(render);
+      if (!prefersReducedMotion && isVisible && !document.hidden) {
+        animationFrameId = requestAnimationFrame(render);
+      } else {
+        animationFrameId = 0;
+      }
     };
 
+    const visibilityObserver = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        if (isVisible && !prefersReducedMotion && !animationFrameId) {
+          animationFrameId = requestAnimationFrame(render);
+        }
+      },
+      { threshold: 0.01 },
+    );
+    visibilityObserver.observe(canvas);
     render();
 
     return () => {
@@ -353,6 +376,7 @@ export function Login3dBackground() {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("resize", setSize);
+      visibilityObserver.disconnect();
     };
   }, []);
 
