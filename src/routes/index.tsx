@@ -9,7 +9,6 @@ import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 import { FinalCTA } from "@/components/landing/FinalCTA";
 import { Footer } from "@/components/landing/Footer";
-import { LiveMapSection } from "@/components/landing/LiveMapSection";
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
@@ -39,7 +38,6 @@ function LandingPage() {
       <ImpactDashboard />
       <FeaturesSection />
       <HowItWorksSection />
-      <LiveMapSection />
       <TestimonialsSection />
       <FinalCTA />
       <Footer />
