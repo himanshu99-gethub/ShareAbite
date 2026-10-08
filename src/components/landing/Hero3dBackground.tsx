@@ -36,7 +36,7 @@ export function Hero3dBackground() {
     let height = (canvas.height = window.innerHeight);
 
     // DPR Scaling for crisp retina screens
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     const setSize = () => {
       if (!canvas) return;
       width = window.innerWidth;
@@ -72,7 +72,7 @@ export function Hero3dBackground() {
 
     // ── 1. Floating 3D Network Nodes ──
     const isMobile = window.innerWidth < 768;
-    const nodeCount = isMobile ? 28 : 52;
+    const nodeCount = isMobile ? 18 : 34;
     const nodes: Node3D[] = [];
 
     const colorPalettes = [
@@ -101,16 +101,25 @@ export function Hero3dBackground() {
     const pulses: Pulse[] = [];
 
     // ── 3. 3D Wave Terrain Grid ──
-    const cols = isMobile ? 18 : 32;
-    const rows = isMobile ? 12 : 20;
+    const cols = isMobile ? 12 : 24;
+    const rows = isMobile ? 8 : 14;
     const gridSpacing = isMobile ? 45 : 60;
 
     let time = 0;
+    let lastFrameTime = 0;
+    let isVisible = true;
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const fov = 420; // 3D Camera field of view
     const cameraZ = 650;
 
     // ── 4. Main 60fps Render Loop ──
     const render = () => {
+      const now = performance.now();
+      if (!prefersReducedMotion && now - lastFrameTime < 33) {
+        animationFrameId = requestAnimationFrame(render);
+        return;
+      }
+      lastFrameTime = now;
       time += 0.016;
 
       // Spring interpolation for smooth camera rotation
@@ -353,9 +362,23 @@ export function Hero3dBackground() {
         ctx.fill();
       }
 
-      animationFrameId = requestAnimationFrame(render);
+      if (!prefersReducedMotion && isVisible && !document.hidden) {
+        animationFrameId = requestAnimationFrame(render);
+      } else {
+        animationFrameId = 0;
+      }
     };
 
+    const visibilityObserver = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        if (isVisible && !prefersReducedMotion && !animationFrameId) {
+          animationFrameId = requestAnimationFrame(render);
+        }
+      },
+      { threshold: 0.01 },
+    );
+    visibilityObserver.observe(canvas);
     render();
 
     return () => {
@@ -363,6 +386,7 @@ export function Hero3dBackground() {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("resize", setSize);
+      visibilityObserver.disconnect();
     };
   }, []);
 
