@@ -23,8 +23,8 @@ function InsightsPage() {
 
   useEffect(() => {
     if (authLoading || profileLoading) return;
-    if (!user) navigate({ to: "/login" });
-    else if (!profile?.role) navigate({ to: "/onboarding" });
+    if (!user) navigate({ to: "/login", replace: true });
+    else if (!profile?.role) navigate({ to: "/onboarding", replace: true });
   }, [user, authLoading, profile, profileLoading, navigate]);
 
   if (authLoading || profileLoading) {

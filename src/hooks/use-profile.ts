@@ -96,6 +96,7 @@ export function useProfile(userId: string | null | undefined, userEmail?: string
         } catch (_) {}
         data = {
           id: userId,
+          email: newProfile.email,
           full_name: newProfile.full_name,
           role: localRole,
           phone: null,
@@ -124,6 +125,7 @@ export function useProfile(userId: string | null | undefined, userEmail?: string
       setProfile({
         ...(data ?? {}),
         id: canonicalId,
+        email: data?.email ?? localEmail ?? null,
         full_name: finalName,
         role: finalRole,
         phone: (data as any)?.phone ?? null,
@@ -134,6 +136,7 @@ export function useProfile(userId: string | null | undefined, userEmail?: string
       setError(err as Error);
       setProfile({
         id: userId || "user-anonymous",
+        email: userEmail?.trim().toLowerCase() || null,
         full_name: "User",
         role: "donor",
         phone: null,

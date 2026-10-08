@@ -369,8 +369,9 @@ export async function requestVerifyOtp(
     recordUserProvider(email, "password");
   }
 
-  // Retrieve PERMANENT Account ID matching Google OAuth or existing profile
-  const userId = await getStableUserId(email);
+  // Resolve the real Supabase Auth ID so OTP and OAuth always use one account.
+  let userId = await getStableUserId(email);
+  let accountRole: "donor" | "receiver" = roleInput;
 
   try {
     const admin = await getSupabaseAdmin();
@@ -383,20 +384,30 @@ export async function requestVerifyOtp(
           email,
           password: passwordInput || undefined,
           email_confirm: true,
-          user_metadata: { role: roleInput, full_name: displayName },
+          user_metadata: { role: accountRole, full_name: displayName },
         });
         if (newUser?.user) existingUser = newUser.user;
-      } else if (passwordInput) {
+      }
+
+      if (existingUser) {
+        userId = existingUser.id;
+        const existingRole = existingUser.user_metadata?.role;
+        if (existingRole === "donor" || existingRole === "receiver") {
+          accountRole = existingRole;
+        }
+      }
+
+      if (existingUser && passwordInput) {
         await admin.auth.admin.updateUserById(existingUser.id, {
           password: passwordInput,
-          user_metadata: { role: roleInput, full_name: displayName },
+          user_metadata: { role: accountRole, full_name: displayName },
         });
       }
 
       await admin.from("profiles").upsert({
         id: userId,
         email: email,
-        role: roleInput,
+        role: accountRole,
         full_name: displayName,
         created_at: new Date().toISOString(),
       } as any);
@@ -406,7 +417,7 @@ export async function requestVerifyOtp(
   const token = signJwt({
     sub: userId,
     email,
-    role: roleInput,
+    role: accountRole,
   });
 
   return {
@@ -416,7 +427,7 @@ export async function requestVerifyOtp(
     user: {
       id: userId,
       email,
-      role: roleInput,
+      role: accountRole,
       full_name: displayName,
     },
   };

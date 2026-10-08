@@ -8,6 +8,7 @@ import {
 import { toast } from "sonner";
 import { OtpVerification } from "@/components/auth/OtpVerification";
 import { Login3dBackground } from "@/components/auth/Login3dBackground";
+import { useAuth } from "@/hooks/use-auth";
 
 async function getSupabase() {
   const { supabase } = await import("@/integrations/supabase/client");
@@ -214,6 +215,7 @@ function BrandPanel() {
 // ── Main LoginPage ────────────────────────────────────────────────────────────
 function LoginPage() {
   const navigate = useNavigate();
+  const { user, isLoading: authLoading } = useAuth();
   const [authMode, setAuthMode] = useState<"signin" | "signup" | "forgot_password">("signin");
   const [authMethod, setAuthMethod] = useState<"password" | "otp">("password");
   const [step, setStep] = useState<"email" | "verify">("email");
@@ -235,6 +237,12 @@ function LoginPage() {
   const [role, setRole] = useState<"donor" | "receiver">("donor");
 
   const isDonor = role === "donor";
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate({ to: "/app", replace: true });
+    }
+  }, [authLoading, user, navigate]);
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
@@ -400,7 +408,7 @@ function LoginPage() {
     }
 
     if (token === "supabase-session") {
-      navigate({ to: "/app" });
+      navigate({ to: "/app", replace: true });
       return;
     }
 
@@ -414,7 +422,7 @@ function LoginPage() {
       localStorage.setItem("otp_access_token", token || `token-${Date.now()}`);
       window.dispatchEvent(new Event("otp_auth_change"));
     }
-    navigate({ to: "/app" });
+    navigate({ to: "/app", replace: true });
   };
 
   const handlePasswordSignIn = async (e: React.FormEvent) => {
@@ -450,7 +458,7 @@ function LoginPage() {
         }
 
         toast.success("Welcome back!");
-        navigate({ to: "/app" });
+        navigate({ to: "/app", replace: true });
         return;
       }
 

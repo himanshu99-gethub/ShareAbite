@@ -27,7 +27,7 @@ function LandingPage() {
   useEffect(() => {
     import("@/integrations/supabase/client").then(({ supabase }) => {
       supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session?.user) navigate({ to: "/app" });
+        if (session?.user) navigate({ to: "/app", replace: true });
       });
     }).catch(() => {});
   }, [navigate]);

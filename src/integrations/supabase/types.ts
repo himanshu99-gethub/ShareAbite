@@ -15,6 +15,7 @@ export type Database = {
       profiles: {
         Row: {
           id: string
+          email: string | null
           full_name: string | null
           role: 'donor' | 'receiver' | null
           phone: string | null
@@ -23,6 +24,7 @@ export type Database = {
         }
         Insert: {
           id: string
+          email?: string | null
           full_name?: string | null
           role?: 'donor' | 'receiver' | null
           phone?: string | null
@@ -31,6 +33,7 @@ export type Database = {
         }
         Update: {
           id?: string
+          email?: string | null
           full_name?: string | null
           role?: 'donor' | 'receiver' | null
           phone?: string | null

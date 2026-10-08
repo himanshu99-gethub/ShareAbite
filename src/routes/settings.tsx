@@ -24,8 +24,8 @@ function SettingsPage() {
 
   useEffect(() => {
     if (authLoading || profileLoading) return;
-    if (!user) { navigate({ to: "/login" }); return; }
-    if (!profile?.role) { navigate({ to: "/onboarding" }); return; }
+    if (!user) { navigate({ to: "/login", replace: true }); return; }
+    if (!profile?.role) { navigate({ to: "/onboarding", replace: true }); return; }
     setFullName(profile.full_name ?? "");
     setPhone(profile.phone ?? "");
     setOrgName(profile.org_name ?? "");
