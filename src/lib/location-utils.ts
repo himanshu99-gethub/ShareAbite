@@ -8,6 +8,16 @@ export interface LocationResult {
   source: "gps-high" | "gps-low" | "ip-fallback" | "default";
 }
 
+export class PreciseLocationError extends Error {
+  code: number;
+
+  constructor(message: string, code = 2) {
+    super(message);
+    this.name = "PreciseLocationError";
+    this.code = code;
+  }
+}
+
 /**
  * Checks the current browser geolocation permission status without prompting.
  */
@@ -103,6 +113,42 @@ export async function getUserLocation(): Promise<LocationResult> {
 }
 
 /**
+ * Requests a fresh browser GPS fix without falling back to IP/city coordinates.
+ * Use this for actions labelled "Live Location" or for saving a pickup point.
+ */
+export async function getPreciseUserLocation(): Promise<LocationResult> {
+  if (typeof window === "undefined" || !navigator.geolocation) {
+    throw new PreciseLocationError("This browser does not support GPS location.", 2);
+  }
+
+  try {
+    const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true,
+        timeout: 20_000,
+        maximumAge: 0,
+      });
+    });
+
+    return {
+      lat: pos.coords.latitude,
+      lng: pos.coords.longitude,
+      accuracy: pos.coords.accuracy,
+      source: "gps-high",
+    };
+  } catch (error: any) {
+    const code = typeof error?.code === "number" ? error.code : 2;
+    const message =
+      code === 1
+        ? "Location permission denied. Browser settings me location allow karein."
+        : code === 3
+          ? "GPS location request timed out. Open area me try karein."
+          : "GPS location unavailable. Device location services check karein.";
+    throw new PreciseLocationError(message, code);
+  }
+}
+
+/**
  * Free IP-based Geolocation fallback using public CORS-enabled APIs
  */
 async function getIpLocationFallback(): Promise<LocationResult | null> {
@@ -163,4 +209,3 @@ async function getIpLocationFallback(): Promise<LocationResult | null> {
 
   return null;
 }
-

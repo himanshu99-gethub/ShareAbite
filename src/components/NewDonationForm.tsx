@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { X, MapPin, UtensilsCrossed, Package, Clock, Image, Loader2, Navigation, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { loadLeaflet } from "@/lib/leaflet-loader";
-import { getUserLocation } from "@/lib/location-utils";
+import { getPreciseUserLocation } from "@/lib/location-utils";
 
 // ─── Standalone Map Picker Component ────────────────────────────────────────
 interface MapPickerInnerProps {
@@ -191,7 +191,7 @@ export function NewDonationForm({ open, onClose, onCreated, donorId }: NewDonati
   const handleGeolocate = async () => {
     setIsGeolocating(true);
     try {
-      const loc = await getUserLocation();
+      const loc = await getPreciseUserLocation();
       setLatitude(loc.lat);
       setLongitude(loc.lng);
 
@@ -214,20 +214,16 @@ export function NewDonationForm({ open, onClose, onCreated, donorId }: NewDonati
         if (loc.city && !city) setCity(loc.city);
       }
 
-      if (loc.source === "gps-high" || loc.source === "gps-low") {
-        toast.success("GPS Location auto-detected! ✅");
-      } else if (loc.source === "ip-fallback") {
-        toast.info(`City detected: ${loc.city || "Approximate"}. Map me exact location adjust kar sakte hain. 📍`);
-      } else {
-        toast.info("Map par click karke exact location select karein. 📍");
-      }
-
-      if (loc.permissionDenied) {
-        toast.warning("Browser location permission blocked hai. URL bar me 🔒 icon se allow kar sakte hain.");
-      }
+      toast.success(
+        `Exact GPS location detected${loc.accuracy ? ` (±${Math.round(loc.accuracy)}m)` : ""}! ✅`
+      );
     } catch (err) {
       console.warn("Geolocate error:", err);
-      toast.error("Location detect nahi ho payi. Kripya map par click karein.");
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Exact GPS location detect nahi ho payi. Kripya map par click karein."
+      );
     } finally {
       setIsGeolocating(false);
     }
