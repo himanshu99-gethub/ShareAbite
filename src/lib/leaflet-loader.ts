@@ -20,6 +20,10 @@ export function loadLeaflet(): Promise<any> {
   }
 
   window._leafletPromise = new Promise((resolve, reject) => {
+    const fail = (error: unknown) => {
+      window._leafletPromise = undefined;
+      reject(error instanceof Error ? error : new Error("Failed to load Leaflet"));
+    };
     // 1. Inject Leaflet CSS if not already present
     if (!document.getElementById("leaflet-css-bundle")) {
       const link = document.createElement("link");
@@ -37,7 +41,7 @@ export function loadLeaflet(): Promise<any> {
         return resolve(window.L);
       }
       existingScript.addEventListener("load", () => resolve(window.L));
-      existingScript.addEventListener("error", (e) => reject(e));
+      existingScript.addEventListener("error", fail, { once: true });
 
       // Poll as fallback if already loaded
       let tries = 0;
@@ -48,7 +52,7 @@ export function loadLeaflet(): Promise<any> {
           resolve(window.L);
         } else if (tries > 50) {
           clearInterval(interval);
-          reject(new Error("Timeout waiting for Leaflet script to initialize"));
+          fail(new Error("Timeout waiting for Leaflet script to initialize"));
         }
       }, 100);
       return;
@@ -65,12 +69,12 @@ export function loadLeaflet(): Promise<any> {
       if (window.L) {
         resolve(window.L);
       } else {
-        reject(new Error("Leaflet script loaded but window.L is undefined"));
+        fail(new Error("Leaflet script loaded but window.L is undefined"));
       }
     };
 
     script.onerror = (err) => {
-      reject(err || new Error("Failed to load Leaflet script from CDN"));
+      fail(err || new Error("Failed to load Leaflet script from CDN"));
     };
 
     document.head.appendChild(script);

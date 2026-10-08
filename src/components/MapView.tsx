@@ -76,6 +76,7 @@ export function MapView({
   const routeLayerRef = useRef<any>(null);          // OSRM road route layer
   const [isLeafletReady, setIsLeafletReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [routeInfo, setRouteInfo] = useState<{ distanceKm: number; durationMin: number } | null>(null);
   const [routeLoading, setRouteLoading] = useState(false);
   const initialCenterDoneRef = useRef(false);
@@ -99,7 +100,7 @@ export function MapView({
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [loadAttempt]);
 
   // 2. Initialize Map Instance
   useEffect(() => {
@@ -524,10 +525,14 @@ export function MapView({
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center bg-card/90">
           <p className="text-sm font-bold text-destructive mb-2">{loadError}</p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => {
+              setLoadError(null);
+              setIsLeafletReady(false);
+              setLoadAttempt((attempt) => attempt + 1);
+            }}
             className="px-4 py-2 text-xs font-bold bg-primary text-primary-foreground rounded-xl shadow"
           >
-            Retry Connection
+            Retry Map
           </button>
         </div>
       )}
