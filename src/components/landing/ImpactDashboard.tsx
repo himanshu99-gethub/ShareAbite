@@ -50,14 +50,24 @@ export function ImpactDashboard() {
       try {
         const { supabase } = await import("@/integrations/supabase/client");
 
-        const [donationsRes, ngosRes] = await Promise.all([
-          supabase.from("donations").select("created_at, status"),
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+        sixMonthsAgo.setDate(1);
+        sixMonthsAgo.setHours(0, 0, 0, 0);
+
+        const [donationsRes, ngosRes, totalCountRes] = await Promise.all([
+          supabase
+            .from("donations")
+            .select("created_at, status")
+            .gte("created_at", sixMonthsAgo.toISOString())
+            .limit(1000),
           supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "receiver"),
+          supabase.from("donations").select("id", { count: "exact", head: true }),
         ]);
 
         const donations = donationsRes.data || [];
         const ngosCount = ngosRes.count || 0;
-        const totalMeals = donations.length;
+        const totalMeals = totalCountRes.count ?? donations.length;
 
         const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         const now = new Date();
@@ -140,7 +150,7 @@ export function ImpactDashboard() {
   ];
 
   return (
-    <section className="py-28 bg-muted/20 relative overflow-hidden border-y border-border/40">
+    <section className="py-12 sm:py-16 bg-muted/20 relative overflow-hidden border-y border-border/40">
       <div className="absolute top-0 right-0 w-[650px] h-[650px] bg-primary/5 rounded-full blur-[150px] pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[450px] h-[450px] bg-amber-400/5 rounded-full blur-[120px] pointer-events-none" />
 
@@ -149,23 +159,23 @@ export function ImpactDashboard() {
         {/* Section Header */}
         <div
           ref={ref}
-          className={`text-center mb-16 ${isIntersecting ? "animate-fade-up-blur opacity-100" : "opacity-0"}`}
+          className={`text-center mb-8 sm:mb-10 ${isIntersecting ? "animate-fade-up-blur opacity-100" : "opacity-0"}`}
         >
-          <span className="glass-pill text-teal-700 dark:text-teal-300 text-xs font-extrabold mb-4">
+          <span className="glass-pill text-teal-700 dark:text-teal-300 text-xs font-extrabold mb-3">
             <Sparkles className="w-3.5 h-3.5 text-teal-500" />
             <span>Verifiable Impact Intelligence</span>
           </span>
 
           <h2
-            className="text-3xl sm:text-4xl lg:text-5xl font-black text-foreground mt-3 tracking-[-0.03em]"
-            style={{ lineHeight: "1.10" }}
+            className="text-2xl sm:text-3xl lg:text-4xl font-black text-foreground mt-2 tracking-[-0.03em]"
+            style={{ lineHeight: "1.12" }}
           >
             Measurable change across{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500">
               every community
             </span>
           </h2>
-          <p className="mt-5 text-muted-foreground text-base sm:text-lg max-w-xl mx-auto leading-relaxed">
+          <p className="mt-3 text-muted-foreground text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
             Every recorded surplus posting is accounted for and traced to local NGOs and hunger-relief centers.
           </p>
         </div>
@@ -184,15 +194,15 @@ export function ImpactDashboard() {
           <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent" />
 
           {/* Card Header */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 sm:p-8 pb-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 sm:p-6 pb-3">
             <div>
-              <h3 className="text-2xl font-black text-foreground tracking-tight">Meals Redistributed Velocity</h3>
-              <p className="text-xs text-muted-foreground mt-1">
+              <h3 className="text-xl sm:text-2xl font-black text-foreground tracking-tight">Meals Redistributed Velocity</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Real-time tracking of food packages diverted from landfills
               </p>
             </div>
-            <div className="mt-4 sm:mt-0 flex items-center gap-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-4 py-2 rounded-2xl border border-emerald-500/20 shadow-xs">
-              <TrendingUp className="w-4 h-4" />
+            <div className="mt-3 sm:mt-0 flex items-center gap-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-3.5 py-1.5 rounded-xl border border-emerald-500/20 shadow-xs">
+              <TrendingUp className="w-3.5 h-3.5" />
               <span className="font-extrabold text-xs font-mono">
                 {stats.growthPercent >= 0 ? `+${stats.growthPercent}%` : `${stats.growthPercent}%`} MoM Trajectory
               </span>
@@ -200,16 +210,16 @@ export function ImpactDashboard() {
           </div>
 
           {/* Mini Stats Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-0 border-y border-border/40 mx-6 sm:mx-8 rounded-2xl overflow-hidden bg-muted/40 backdrop-blur-md">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-0 border-y border-border/40 mx-4 sm:mx-6 rounded-2xl overflow-hidden bg-muted/40 backdrop-blur-md">
             {miniStats.map((s, i) => {
               const Icon = s.icon;
               return (
                 <div
                   key={s.label}
-                  className="flex flex-col items-center py-4 px-3 border-r border-border/40 last:border-r-0 hover:bg-card/40 transition-colors"
+                  className="flex flex-col items-center py-3 px-3 border-r border-border/40 last:border-r-0 hover:bg-card/40 transition-colors"
                 >
-                  <Icon className={`w-4 h-4 ${s.color} mb-1`} />
-                  <p className="text-lg sm:text-xl font-black text-foreground font-mono">{s.value}</p>
+                  <Icon className={`w-3.5 h-3.5 ${s.color} mb-0.5`} />
+                  <p className="text-base sm:text-lg font-black text-foreground font-mono">{s.value}</p>
                   <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">{s.label}</p>
                 </div>
               );
@@ -217,7 +227,7 @@ export function ImpactDashboard() {
           </div>
 
           {/* Chart Canvas Area */}
-          <div className="h-[280px] sm:h-[340px] w-full px-4 sm:px-8 pt-8 pb-6">
+          <div className="h-[210px] sm:h-[250px] w-full px-4 sm:px-6 pt-5 pb-3">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>

@@ -41,20 +41,43 @@ function AnimatedCounter({ value, isFree = false, suffix = "" }: { value: number
   );
 }
 
+let cachedStats: { meals: number; donors: number; ngos: number; timestamp: number } | null = null;
+const STATS_CACHE_TTL_MS = 30000;
+
 export function StatsBar() {
   const { ref, isIntersecting } = useStatsVisible();
 
-  const [realStats, setRealStats] = useState({
-    meals: 0,
-    donors: 0,
-    ngos: 0,
-    isLoading: true,
+  const [realStats, setRealStats] = useState(() => {
+    if (cachedStats && Date.now() - cachedStats.timestamp < STATS_CACHE_TTL_MS) {
+      return {
+        meals: cachedStats.meals,
+        donors: cachedStats.donors,
+        ngos: cachedStats.ngos,
+        isLoading: false,
+      };
+    }
+    return {
+      meals: 0,
+      donors: 0,
+      ngos: 0,
+      isLoading: true,
+    };
   });
 
   useEffect(() => {
     let channel: any = null;
 
-    async function loadStats() {
+    async function loadStats(force = false) {
+      if (!force && cachedStats && Date.now() - cachedStats.timestamp < STATS_CACHE_TTL_MS) {
+        setRealStats({
+          meals: cachedStats.meals,
+          donors: cachedStats.donors,
+          ngos: cachedStats.ngos,
+          isLoading: false,
+        });
+        return;
+      }
+
       try {
         const { supabase } = await import("@/integrations/supabase/client");
 
@@ -64,10 +87,18 @@ export function StatsBar() {
           supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "receiver"),
         ]);
 
-        setRealStats({
+        const nextStats = {
           meals: donationsRes.count ?? 0,
           donors: donorsRes.count ?? 0,
           ngos: ngosRes.count ?? 0,
+          timestamp: Date.now(),
+        };
+
+        cachedStats = nextStats;
+        setRealStats({
+          meals: nextStats.meals,
+          donors: nextStats.donors,
+          ngos: nextStats.ngos,
           isLoading: false,
         });
       } catch (err) {
@@ -81,8 +112,8 @@ export function StatsBar() {
     import("@/integrations/supabase/client").then(({ supabase }) => {
       channel = supabase
         .channel("realtime-stats-bar")
-        .on("postgres_changes", { event: "*", schema: "public", table: "donations" }, () => loadStats())
-        .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => loadStats())
+        .on("postgres_changes", { event: "*", schema: "public", table: "donations" }, () => loadStats(true))
+        .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => loadStats(true))
         .subscribe();
     });
 
@@ -143,28 +174,28 @@ export function StatsBar() {
   ];
 
   return (
-    <section className="relative z-20 py-12 bg-background border-b border-border/40 overflow-hidden">
+    <section className="relative z-20 py-7 sm:py-8 bg-background border-b border-border/40 overflow-hidden">
       {/* Top ambient line */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
       
       {/* Real-time sync indicator badge */}
-      <div className="flex justify-center mb-8">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-bold shadow-xs">
-          <Activity className="w-3.5 h-3.5 animate-pulse text-emerald-500" />
+      <div className="flex justify-center mb-5">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold shadow-xs">
+          <Activity className="w-3 h-3 animate-pulse text-emerald-500" />
           <span>Live Database Telemetry Active</span>
         </div>
       </div>
 
       <div
         ref={ref}
-        className="max-w-7xl mx-auto px-5 sm:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"
+        className="max-w-7xl mx-auto px-5 sm:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
       >
         {statsList.map((stat, i) => {
           const Icon = stat.icon;
           return (
             <div
               key={stat.label}
-              className={`group relative p-6 rounded-3xl border border-border/60 bg-card/80 dark:bg-card/40 backdrop-blur-xl transition-all duration-400 hover:-translate-y-1.5 cursor-default overflow-hidden ${
+              className={`group relative p-4.5 sm:p-5 rounded-2xl border border-border/60 bg-card/80 dark:bg-card/40 backdrop-blur-xl transition-all duration-400 hover:-translate-y-1 cursor-default overflow-hidden ${
                 isIntersecting ? "animate-fade-up-blur opacity-100" : "opacity-0"
               }`}
               style={{ 
@@ -178,9 +209,9 @@ export function StatsBar() {
               {/* Dynamic hover gradient */}
               <div className={`absolute inset-0 bg-gradient-to-br ${stat.bgGlow} opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none`} />
 
-              <div className="relative z-10 flex items-start justify-between mb-4">
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${stat.accentBg} border group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-sm`}>
-                  <Icon className={`w-6 h-6 ${stat.color}`} />
+              <div className="relative z-10 flex items-start justify-between mb-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${stat.accentBg} border group-hover:scale-105 transition-all duration-300 shadow-sm`}>
+                  <Icon className={`w-5 h-5 ${stat.color}`} />
                 </div>
                 <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-wider bg-muted/60 px-2 py-0.5 rounded-md">
                   0{i + 1}
@@ -188,7 +219,7 @@ export function StatsBar() {
               </div>
 
               {/* Number */}
-              <p className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight mb-1">
+              <p className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight mb-1">
                 <AnimatedCounter value={stat.value} isFree={stat.isFree} suffix={stat.suffix} />
               </p>
 

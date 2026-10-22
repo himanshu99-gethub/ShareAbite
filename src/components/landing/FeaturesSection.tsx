@@ -179,7 +179,7 @@ function FeatureCard({
         }}
       >
         {/* Inner Core Container */}
-        <div className="relative rounded-[calc(2rem-0.375rem)] border border-border/50 bg-card/95 dark:bg-card/70 backdrop-blur-xl p-7 sm:p-8 transition-all duration-300 overflow-hidden h-full flex flex-col justify-between shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
+        <div className="relative rounded-[calc(2rem-0.375rem)] border border-border/50 bg-card/95 dark:bg-card/70 backdrop-blur-xl p-5 sm:p-6 transition-all duration-300 overflow-hidden h-full flex flex-col justify-between shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
           {/* Top Specular Rim */}
           <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-white/80 dark:via-white/20 to-transparent" />
 
@@ -196,34 +196,34 @@ function FeatureCard({
           <div className="relative z-10 flex flex-col h-full justify-between">
             <div>
               {/* Top Row: Icon + Tag + Visual */}
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-4">
                 <div
-                  className={`w-13 h-13 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center shadow-lg shadow-emerald-500/10 group-hover:scale-105 transition-transform duration-300`}
+                  className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center shadow-lg shadow-emerald-500/10 group-hover:scale-105 transition-transform duration-300`}
                 >
-                  <feature.icon className="w-6 h-6 text-white drop-shadow-sm" />
+                  <feature.icon className="w-5 h-5 text-white drop-shadow-sm" />
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   {feature.has3dVisual === "cube" && <Rotating3DCube />}
                   {feature.has3dVisual === "bars" && <LivingDataBars />}
-                  <span className="text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full bg-muted/80 text-muted-foreground border border-border/50">
+                  <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-muted/80 text-muted-foreground border border-border/50">
                     {feature.tag}
                   </span>
                 </div>
               </div>
 
               {/* Title & Desc */}
-              <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-3 tracking-tight group-hover:text-primary transition-colors duration-200">
+              <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2 tracking-tight group-hover:text-primary transition-colors duration-200">
                 {feature.title}
               </h3>
 
-              <p className="text-muted-foreground text-sm sm:text-base leading-relaxed [text-wrap:pretty]">
+              <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed [text-wrap:pretty]">
                 {feature.desc}
               </p>
             </div>
 
             {/* Bottom Accent Indicator */}
-            <div className="mt-8 pt-4 border-t border-border/40 flex items-center justify-between text-xs text-muted-foreground font-medium">
+            <div className="mt-5 pt-3 border-t border-border/40 flex items-center justify-between text-xs text-muted-foreground font-medium">
               <span className="flex items-center gap-2">
                 <span className={`w-2 h-2 rounded-full bg-gradient-to-r ${feature.gradient}`} />
                 Active in real-time
@@ -243,7 +243,7 @@ export function FeaturesSection() {
   const { ref, isIntersecting } = useIntersectionObserver();
 
   return (
-    <section id="features" className="py-28 sm:py-36 bg-background relative overflow-hidden">
+    <section id="features" className="py-12 sm:py-16 bg-background relative overflow-hidden">
       {/* Decorative ambient background */}
       <div className="absolute inset-0 dot-grid opacity-30 pointer-events-none" />
       <div className="absolute top-0 right-0 w-[650px] h-[650px] bg-emerald-500/5 rounded-full blur-[140px] pointer-events-none" />
@@ -253,15 +253,15 @@ export function FeaturesSection() {
         {/* Section Header */}
         <div
           ref={ref}
-          className={`text-center mb-16 sm:mb-20 ${isIntersecting ? "animate-fade-up-blur opacity-100" : "opacity-0"}`}
+          className={`text-center mb-8 sm:mb-10 ${isIntersecting ? "animate-fade-up-blur opacity-100" : "opacity-0"}`}
         >
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[10px] sm:text-xs uppercase tracking-[0.2em] font-semibold mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[10px] sm:text-xs uppercase tracking-[0.2em] font-semibold mb-3">
             <Zap className="w-3.5 h-3.5 text-emerald-500" />
             <span>Platform Capabilities</span>
           </div>
 
           <h2
-            className="text-3xl sm:text-4xl lg:text-5xl font-black text-foreground mt-2 tracking-tight [text-wrap:balance]"
+            className="text-2xl sm:text-3xl lg:text-4xl font-black text-foreground mt-2 tracking-tight [text-wrap:balance]"
             style={{ lineHeight: "1.12" }}
           >
             Built for speed, precision, and{" "}
@@ -270,13 +270,13 @@ export function FeaturesSection() {
             </span>
           </h2>
 
-          <p className="mt-5 text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto leading-relaxed [text-wrap:pretty]">
+          <p className="mt-3 text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto leading-relaxed [text-wrap:pretty]">
             Every feature is engineered to connect surplus food with verified community shelters in real-time.
           </p>
         </div>
 
         {/* Asymmetrical Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-5">
           {features.map((f, i) => (
             <FeatureCard key={f.title} feature={f} delay={i * 80} />
           ))}

@@ -19,9 +19,10 @@ function getDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
 }
 
 export function LiveMapSection() {
-  // Fetch all active/available donations from all donors
+  // Fetch active/available donations from donors (bounded to 40 for optimal map performance)
   const { donations, isLoading: isLoadingDonations } = useDonations({
     statusFilter: ["available", "requested", "confirmed"],
+    limit: 40,
   });
   const [ngos, setNgos] = useState<NGOProfile[]>([]);
   const [isLoadingNgos, setIsLoadingNgos] = useState(true);
@@ -97,7 +98,8 @@ export function LiveMapSection() {
         const { data, error } = await supabase
           .from("profiles")
           .select("id, full_name, org_name, phone")
-          .eq("role", "receiver");
+          .eq("role", "receiver")
+          .limit(40);
 
         if (error) throw error;
 
@@ -157,7 +159,7 @@ export function LiveMapSection() {
   const recentFoodDonations = [...donations].slice(0, 3);
 
   return (
-    <section id="live-map" className="py-24 relative overflow-hidden bg-background">
+    <section id="live-map" className="py-12 sm:py-16 relative overflow-hidden bg-background">
       {/* Ambient background glow */}
       <div className="absolute top-0 right-0 w-[700px] h-[700px] bg-primary/6 rounded-full blur-[160px] pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-amber-400/5 rounded-full blur-[130px] pointer-events-none" />
@@ -167,23 +169,23 @@ export function LiveMapSection() {
         {/* Section Header */}
         <div
           ref={ref}
-          className={`text-center max-w-3xl mx-auto mb-14 ${isIntersecting ? "animate-fade-up-blur opacity-100" : "opacity-0"}`}
+          className={`text-center max-w-3xl mx-auto mb-8 sm:mb-10 ${isIntersecting ? "animate-fade-up-blur opacity-100" : "opacity-0"}`}
         >
-          <span className="glass-pill text-emerald-700 dark:text-emerald-300 text-xs font-extrabold mb-4 inline-flex items-center gap-2">
+          <span className="glass-pill text-emerald-700 dark:text-emerald-300 text-xs font-extrabold mb-3 inline-flex items-center gap-2">
             <Radio className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
             <span>Live Geospatial Food Rescue Grid</span>
           </span>
 
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4 tracking-[-0.03em] text-foreground">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black mb-2 tracking-[-0.03em] text-foreground">
             Live Surplus Food & Rescue Map
           </h2>
-          <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
+          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
             Whenever a donor lists surplus food, it instantly lights up on this live map for nearby verified shelters & NGOs.
           </p>
         </div>
 
         {/* Command Center Grid */}
-        <div className="grid lg:grid-cols-12 gap-8 items-stretch">
+        <div className="grid lg:grid-cols-12 gap-5 items-stretch">
           
           {/* Left Column: Telemetry & Live Feeds */}
           <div className="lg:col-span-4 flex flex-col justify-between gap-5">
@@ -336,7 +338,7 @@ export function LiveMapSection() {
           </div>
 
           {/* Right Column: Interactive Live Map Display */}
-          <div className="lg:col-span-8 bg-card/90 dark:bg-card/50 rounded-[2.5rem] p-3 sm:p-4 border border-border/70 relative group min-h-[500px] lg:min-h-[580px] flex flex-col"
+          <div className="lg:col-span-8 bg-card/90 dark:bg-card/50 rounded-[2.5rem] p-3 sm:p-4 border border-border/70 relative group min-h-[400px] lg:min-h-[460px] flex flex-col"
             style={{ boxShadow: "var(--shadow-xl)" }}
           >
             {/* Top Specular Rim */}

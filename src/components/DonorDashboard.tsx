@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Plus, UtensilsCrossed, Bell, CheckCircle2, XCircle, Loader2, Package, ChevronRight, History, UserCog, Award } from "lucide-react";
 import { toast } from "sonner";
 import { useDonations } from "@/hooks/use-donations";
@@ -101,9 +102,9 @@ export function DonorDashboard({ donorId, donorName }: DonorDashboardProps) {
         <div className="flex items-center gap-2.5 flex-shrink-0">
           <button
             onClick={() => setShowCertificate(true)}
-            className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-sm font-bold hover:bg-emerald-100 transition-all duration-200 shadow-xs active:scale-[0.98] cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 text-sm font-bold hover:bg-emerald-500/15 transition-all duration-200 shadow-xs active:scale-[0.98] cursor-pointer"
           >
-            <Award className="w-4 h-4 text-emerald-600" />
+            <Award className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             Impact Certificate
           </button>
           <button
@@ -149,8 +150,8 @@ export function DonorDashboard({ donorId, donorName }: DonorDashboardProps) {
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
               className={`relative flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
                 isActive
-                  ? 'bg-card text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'bg-card text-foreground shadow-xs border border-border/50 font-bold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -345,7 +346,7 @@ export function DonorDashboard({ donorId, donorName }: DonorDashboardProps) {
                   </p>
                 </div>
               </div>
-              <div className="bg-white rounded-2xl border border-border/60 overflow-hidden">
+              <div className="bg-card rounded-2xl border border-border/60 overflow-hidden shadow-xs">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm text-left">
                     <thead className="bg-muted/50 text-muted-foreground text-xs uppercase font-semibold">
@@ -399,9 +400,18 @@ export function DonorDashboard({ donorId, donorName }: DonorDashboardProps) {
             </div>
             
             <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-muted/40 border border-border/40">
-                <h3 className="text-sm font-semibold text-foreground mb-1">Account Info</h3>
-                <p className="text-sm text-muted-foreground">To update your details, please contact support or check back later for the edit profile feature.</p>
+              <div className="p-5 rounded-2xl bg-muted/40 border border-border/50 shadow-xs">
+                <h3 className="text-sm font-bold text-foreground mb-1">Account & Organization Info</h3>
+                <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
+                  You can update your personal contact info, phone number, and organization name anytime in your settings.
+                </p>
+                <Link
+                  to="/settings"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-all shadow-xs active:scale-[0.98]"
+                >
+                  <UserCog className="w-4 h-4" />
+                  Edit Profile in Settings
+                </Link>
               </div>
             </div>
           </div>

@@ -85,7 +85,7 @@ export function HowItWorksSection() {
   const currentWorkflow = workflowRoles[activeRole];
 
   return (
-    <section id="how-it-works" className="py-28 bg-muted/20 relative overflow-hidden border-y border-border/40">
+    <section id="how-it-works" className="py-12 sm:py-16 bg-muted/20 relative overflow-hidden border-y border-border/40">
       {/* Background grid */}
       <div className="absolute inset-0 line-grid opacity-40 pointer-events-none" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[160px] pointer-events-none" />
@@ -95,16 +95,16 @@ export function HowItWorksSection() {
         {/* Section Header */}
         <div
           ref={ref}
-          className={`text-center mb-16 ${isIntersecting ? "animate-fade-up-blur opacity-100" : "opacity-0"}`}
+          className={`text-center mb-8 sm:mb-10 ${isIntersecting ? "animate-fade-up-blur opacity-100" : "opacity-0"}`}
         >
-          <span className="glass-pill text-amber-700 dark:text-amber-300 text-xs font-extrabold mb-4">
+          <span className="glass-pill text-amber-700 dark:text-amber-300 text-xs font-extrabold mb-3">
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
             <span>Seamless Coordination Flow</span>
           </span>
 
           <h2
-            className="text-3xl sm:text-4xl lg:text-5xl font-black text-foreground mt-3 tracking-[-0.03em]"
-            style={{ lineHeight: "1.10" }}
+            className="text-2xl sm:text-3xl lg:text-4xl font-black text-foreground mt-2 tracking-[-0.03em]"
+            style={{ lineHeight: "1.12" }}
           >
             Three simple steps.{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600">
@@ -112,42 +112,42 @@ export function HowItWorksSection() {
             </span>
           </h2>
 
-          <p className="mt-5 text-muted-foreground text-base sm:text-lg max-w-xl mx-auto leading-relaxed">
+          <p className="mt-2 text-muted-foreground text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
             Choose your role to see how ShareABite streamlines food rescue in real-time.
           </p>
 
           {/* Interactive Role Switcher */}
-          <div className="mt-8 inline-flex items-center p-1.5 rounded-2xl bg-card border border-border/80 shadow-md">
+          <div className="mt-5 inline-flex items-center p-1 rounded-2xl bg-card border border-border/80 shadow-md">
             <button
               type="button"
               onClick={() => setActiveRole("donor")}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-extrabold transition-all duration-300 ${
+              className={`flex items-center gap-2 px-4.5 sm:px-5 py-2 rounded-xl text-xs font-extrabold transition-all duration-300 ${
                 activeRole === "donor"
                   ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/25"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <UtensilsCrossed className="w-4 h-4" />
-              I'm a Food Donor (Restaurant/Home)
+              <UtensilsCrossed className="w-3.5 h-3.5" />
+              I'm a Food Donor
             </button>
 
             <button
               type="button"
               onClick={() => setActiveRole("receiver")}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-extrabold transition-all duration-300 ${
+              className={`flex items-center gap-2 px-4.5 sm:px-5 py-2 rounded-xl text-xs font-extrabold transition-all duration-300 ${
                 activeRole === "receiver"
                   ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/25"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <ShieldCheck className="w-4 h-4" />
-              I'm an NGO / Shelter Receiver
+              <ShieldCheck className="w-3.5 h-3.5" />
+              I'm an NGO / Shelter
             </button>
           </div>
         </div>
 
         {/* 3D Step Cards with SVG Connectors */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 relative">
           {currentWorkflow.steps.map((step, i) => {
             const Icon = step.icon;
             const isLast = i === currentWorkflow.steps.length - 1;
@@ -157,14 +157,14 @@ export function HowItWorksSection() {
                 {/* Desktop connecting arrow */}
                 {!isLast && (
                   <div
-                    className="hidden md:flex absolute top-12 -right-3.5 z-20 items-center justify-center w-8 h-8 rounded-full bg-card border border-border/80 shadow-md text-muted-foreground"
+                    className="hidden md:flex absolute top-10 -right-3 z-20 items-center justify-center w-7 h-7 rounded-full bg-card border border-border/80 shadow-md text-muted-foreground"
                   >
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </div>
                 )}
 
                 <div
-                  className={`group relative h-full rounded-3xl border border-border/60 bg-card/90 dark:bg-card/40 backdrop-blur-xl p-8 transition-all duration-400 hover:-translate-y-2 cursor-default overflow-hidden ${
+                  className={`group relative h-full rounded-2xl border border-border/60 bg-card/90 dark:bg-card/40 backdrop-blur-xl p-5 sm:p-6 transition-all duration-400 hover:-translate-y-1.5 cursor-default overflow-hidden ${
                     isIntersecting ? "animate-fade-up-blur opacity-100" : "opacity-0"
                   }`}
                   style={{
@@ -177,7 +177,7 @@ export function HowItWorksSection() {
 
                   {/* Watermark Step Number */}
                   <span
-                    className="absolute top-4 right-6 text-7xl font-black text-foreground/[0.04] select-none pointer-events-none"
+                    className="absolute top-3 right-5 text-6xl font-black text-foreground/[0.04] select-none pointer-events-none"
                     aria-hidden
                   >
                     {step.num}
@@ -185,24 +185,24 @@ export function HowItWorksSection() {
 
                   {/* Icon */}
                   <div
-                    className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${step.gradient} flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300`}
-                    style={{ boxShadow: `0 10px 28px ${step.glowColor}` }}
+                    className={`relative w-12 h-12 rounded-xl bg-gradient-to-br ${step.gradient} flex items-center justify-center mb-4 shadow-md group-hover:scale-105 transition-transform duration-300`}
+                    style={{ boxShadow: `0 8px 20px ${step.glowColor}` }}
                   >
-                    <Icon className="w-8 h-8 text-white drop-shadow-sm" />
+                    <Icon className="w-6 h-6 text-white drop-shadow-sm" />
                   </div>
 
                   {/* Role Sub-Badge */}
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold bg-primary/10 text-primary mb-3">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-primary/10 text-primary mb-2">
                     {step.role}
                   </span>
 
                   {/* Step Title */}
-                  <h3 className="font-black text-foreground text-2xl mb-3 tracking-tight">
+                  <h3 className="font-black text-foreground text-lg sm:text-xl mb-2 tracking-tight">
                     {step.title}
                   </h3>
 
                   {/* Step Description */}
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                     {step.desc}
                   </p>
                 </div>

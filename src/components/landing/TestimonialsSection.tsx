@@ -70,18 +70,18 @@ function FeaturedCard({
   return (
     <div
       ref={ref}
-      className={`relative col-span-full rounded-3xl border border-primary/20 bg-gradient-to-br from-card via-card to-emerald-50/20 dark:to-emerald-950/20 p-8 sm:p-10 overflow-hidden
+      className={`relative col-span-full rounded-3xl border border-primary/20 bg-gradient-to-br from-card via-card to-emerald-50/20 dark:to-emerald-950/20 p-5 sm:p-7 overflow-hidden
         transition-all duration-400 hover:-translate-y-1.5 ${isIntersecting ? "animate-fade-up-blur opacity-100" : "opacity-0"}`}
       style={{ boxShadow: "var(--shadow-neumorphic)" }}
     >
       {/* Large decorative quote watermark */}
-      <Quote className="absolute top-6 right-8 w-24 h-24 text-primary/5 rotate-180 pointer-events-none" aria-hidden />
+      <Quote className="absolute top-4 right-6 w-16 h-16 text-primary/5 rotate-180 pointer-events-none" aria-hidden />
 
       {/* Top Specular Rim */}
       <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary/70 via-emerald-400/50 to-transparent" />
 
       <div className="relative z-10">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3">
           <StarRating count={testimonial.rating} />
           <span className="glass-pill text-[11px] font-extrabold text-emerald-700 dark:text-emerald-300">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
@@ -89,27 +89,27 @@ function FeaturedCard({
           </span>
         </div>
 
-        <blockquote className="mt-4 text-xl sm:text-2xl font-bold text-foreground leading-relaxed max-w-3xl">
+        <blockquote className="mt-3 text-lg sm:text-xl font-bold text-foreground leading-relaxed max-w-3xl">
           "{testimonial.quote}"
         </blockquote>
 
-        <div className="flex flex-wrap items-center justify-between gap-4 mt-8 pt-6 border-t border-border/40">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 mt-5 pt-4 border-t border-border/40">
+          <div className="flex items-center gap-3">
             <div className="relative">
               <div className="absolute -inset-1 bg-gradient-to-br from-primary to-emerald-400 rounded-full blur opacity-40" />
               <img
                 src={testimonial.avatar}
                 alt={testimonial.name}
-                className="relative w-14 h-14 rounded-full object-cover border-2 border-white dark:border-zinc-800 shadow-md"
+                className="relative w-11 h-11 rounded-full object-cover border-2 border-border/70 shadow-md"
               />
             </div>
             <div>
-              <p className="font-extrabold text-foreground text-base leading-tight">{testimonial.name}</p>
-              <p className="text-xs text-muted-foreground mt-0.5 font-medium">{testimonial.role}</p>
+              <p className="font-extrabold text-foreground text-sm leading-tight">{testimonial.name}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5 font-medium">{testimonial.role}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold">
+          <div className="flex items-center gap-2 px-3.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold">
             <Heart className="w-3.5 h-3.5 text-primary fill-primary/30" />
             Verified Donor Partner
           </div>
@@ -131,8 +131,8 @@ function TestimonialCard({
   return (
     <div
       ref={ref}
-      className={`group relative rounded-3xl border border-border/60 bg-card/90 dark:bg-card/50 backdrop-blur-xl p-7 overflow-hidden
-        transition-all duration-400 hover:-translate-y-2 cursor-default ${isIntersecting ? "animate-fade-up-blur opacity-100" : "opacity-0"}`}
+      className={`group relative rounded-2xl border border-border/60 bg-card/90 dark:bg-card/50 backdrop-blur-xl p-5 sm:p-6 overflow-hidden
+        transition-all duration-400 hover:-translate-y-1.5 cursor-default ${isIntersecting ? "animate-fade-up-blur opacity-100" : "opacity-0"}`}
       style={{
         animationDelay: `${delay}ms`,
         boxShadow: "var(--shadow-neumorphic)",
@@ -142,7 +142,7 @@ function TestimonialCard({
         <div>
           <StarRating count={testimonial.rating} />
 
-          <p className="text-sm sm:text-base text-foreground/90 leading-relaxed my-5 font-normal">
+          <p className="text-xs sm:text-sm text-foreground/90 leading-relaxed my-3 font-normal">
             "{testimonial.quote}"
           </p>
         </div>
@@ -152,7 +152,7 @@ function TestimonialCard({
             <img
               src={testimonial.avatar}
               alt={testimonial.name}
-              className="w-11 h-11 rounded-full object-cover border-2 border-white dark:border-zinc-800 shadow-sm"
+              className="w-11 h-11 rounded-full object-cover border-2 border-border/70 shadow-sm"
             />
           </div>
           <div>
@@ -180,7 +180,8 @@ export function TestimonialsSection() {
       const { data } = await supabase
         .from("reviews" as any)
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(20);
 
       if (data && data.length > 0) {
         remoteReviews = data.map((r: any) => ({
@@ -239,7 +240,7 @@ export function TestimonialsSection() {
 
   return (
     <>
-      <section id="testimonials" className="py-28 bg-background relative overflow-hidden">
+      <section id="testimonials" className="py-12 sm:py-16 bg-background relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-emerald-500/5 via-transparent to-transparent pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-5 sm:px-8 relative z-10">
@@ -247,43 +248,43 @@ export function TestimonialsSection() {
           {/* Section Header */}
           <div
             ref={ref}
-            className={`flex flex-col md:flex-row items-center justify-between gap-8 mb-16 ${
+            className={`flex flex-col md:flex-row items-center justify-between gap-5 mb-8 sm:mb-10 ${
               isIntersecting ? "animate-fade-up-blur opacity-100" : "opacity-0"
             }`}
           >
             <div className="text-center md:text-left">
-              <span className="glass-pill text-blue-700 dark:text-blue-300 text-xs font-extrabold mb-4">
+              <span className="glass-pill text-blue-700 dark:text-blue-300 text-xs font-extrabold mb-3">
                 <MessageSquare className="w-3.5 h-3.5 text-blue-500" />
                 <span>Voices of the Network</span>
               </span>
 
               <h2
-                className="text-3xl sm:text-4xl lg:text-5xl font-black text-foreground mt-3 tracking-[-0.03em]"
-                style={{ lineHeight: "1.10" }}
+                className="text-2xl sm:text-3xl lg:text-4xl font-black text-foreground mt-2 tracking-[-0.03em]"
+                style={{ lineHeight: "1.12" }}
               >
                 Real impact.{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500">
                   Real communities.
                 </span>
               </h2>
-              <p className="mt-4 text-muted-foreground text-base sm:text-lg max-w-xl">
+              <p className="mt-2 text-muted-foreground text-sm sm:text-base max-w-xl">
                 Hear firsthand from the restaurants, caterers, and shelters powering zero-waste hunger relief.
               </p>
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-3 flex-shrink-0">
+            <div className="flex items-center gap-2.5 flex-shrink-0">
               <button
                 type="button"
                 onClick={() => setAllModalOpen(true)}
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl border border-border/80 bg-card font-bold text-xs hover:bg-muted transition-all shadow-sm active:scale-[0.98]"
+                className="inline-flex items-center gap-2 px-4.5 py-2.5 rounded-xl border border-border/80 bg-card font-bold text-xs hover:bg-muted transition-all shadow-sm active:scale-[0.98]"
               >
                 All Stories ({allReviewsList.length})
               </button>
               <button
                 type="button"
                 onClick={() => setModalOpen(true)}
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-primary to-emerald-600 text-white font-extrabold text-xs hover:from-primary/90 hover:to-emerald-500 transition-all shadow-lg shadow-primary/25 hover:shadow-primary/40 active:scale-[0.98]"
+                className="inline-flex items-center gap-2 px-4.5 py-2.5 rounded-xl bg-gradient-to-r from-primary to-emerald-600 text-white font-extrabold text-xs hover:from-primary/90 hover:to-emerald-500 transition-all shadow-lg shadow-primary/25 hover:shadow-primary/40 active:scale-[0.98]"
               >
                 <PenSquare className="w-4 h-4" />
                 Submit Your Story

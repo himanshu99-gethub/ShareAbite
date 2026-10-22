@@ -5,7 +5,7 @@ export type Donation = Tables<"donations"> & {
   profiles?: { full_name: string | null; phone: string | null; org_name: string | null } | null;
 };
 
-export function useDonations(options?: { donorId?: string; statusFilter?: string[] }) {
+export function useDonations(options?: { donorId?: string; statusFilter?: string[]; limit?: number }) {
   const [donations, setDonations] = useState<Donation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -26,6 +26,10 @@ export function useDonations(options?: { donorId?: string; statusFilter?: string
         query = query.in("status", options.statusFilter as any);
       }
 
+      // Safe bounded query limit
+      const queryLimit = options?.limit ?? 50;
+      query = query.limit(queryLimit);
+
       const { data, error } = await query;
       if (error) throw error;
       setDonations((data as Donation[]) ?? []);
@@ -34,7 +38,7 @@ export function useDonations(options?: { donorId?: string; statusFilter?: string
     } finally {
       setIsLoading(false);
     }
-  }, [options?.donorId, options?.statusFilter?.join(",")]);
+  }, [options?.donorId, options?.statusFilter?.join(","), options?.limit]);
 
   useEffect(() => {
     fetchDonations();

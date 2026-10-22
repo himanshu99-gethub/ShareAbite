@@ -297,16 +297,16 @@ export function NewDonationForm({ open, onClose, onCreated, donorId }: NewDonati
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
       {/* Sheet */}
-      <div className="relative z-10 w-full max-w-3xl bg-white rounded-2xl shadow-2xl max-h-[96vh] overflow-y-auto animate-spring-up flex flex-col">
+      <div className="relative z-10 w-full max-w-3xl bg-card text-card-foreground border border-border/70 rounded-2xl shadow-2xl max-h-[96vh] overflow-y-auto animate-spring-up flex flex-col">
         {/* Header */}
-        <div className="sticky top-0 bg-white/95 backdrop-blur-sm border-b border-border/50 px-5 py-3 flex items-center justify-between rounded-t-2xl z-10">
+        <div className="sticky top-0 bg-card/95 backdrop-blur-md border-b border-border/60 px-5 py-3.5 flex items-center justify-between rounded-t-2xl z-10">
           <div>
             <h2 className="font-bold text-lg text-foreground leading-tight">New Donation</h2>
             <p className="text-xs text-muted-foreground mt-0.5">Share your surplus food with those who need it</p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-muted/60 text-muted-foreground transition-colors"
+            className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-muted/70 text-muted-foreground transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -385,10 +385,10 @@ export function NewDonationForm({ open, onClose, onCreated, donorId }: NewDonati
                       type="button"
                       onClick={handleGeolocate}
                       disabled={isGeolocating}
-                      className={`flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-xs font-bold transition-all ${
+                      className={`flex items-center justify-center gap-1.5 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                         latitude && longitude
-                          ? "border-emerald-500/20 bg-emerald-50 text-emerald-700"
-                          : "border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
+                          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                          : "border-primary/25 bg-primary/10 text-primary hover:bg-primary/15"
                       }`}
                     >
                       {isGeolocating ? (
@@ -401,29 +401,29 @@ export function NewDonationForm({ open, onClose, onCreated, donorId }: NewDonati
                     <button
                       type="button"
                       onClick={() => setShowMapPicker((v) => !v)}
-                      className={`flex items-center justify-center gap-1.5 py-2 rounded-xl border-2 text-xs font-bold transition-all ${
+                      className={`flex items-center justify-center gap-1.5 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                         showMapPicker
-                          ? "border-blue-500/30 bg-blue-50 text-blue-700"
-                          : "border-blue-500/20 bg-blue-50/50 text-blue-600 hover:bg-blue-50"
+                          ? "border-blue-500/40 bg-blue-500/15 text-blue-700 dark:text-blue-300"
+                          : "border-blue-500/25 bg-blue-500/10 text-blue-700 dark:text-blue-300 hover:bg-blue-500/15"
                       }`}
                     >
                       <MapPin className="w-3.5 h-3.5" />
-                      {showMapPicker ? "Hide Map" : "Map se Chunen"}
+                      {showMapPicker ? "Hide Map" : "Select on Map"}
                     </button>
                   </div>
 
                   {/* Location status */}
                   {latitude && longitude && (
-                    <p className="text-[10px] text-emerald-600 font-medium text-center bg-emerald-50 py-1 rounded-lg border border-emerald-100">
+                    <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold text-center bg-emerald-500/10 py-1 rounded-lg border border-emerald-500/25">
                       ✅ Location set: {latitude.toFixed(4)}, {longitude.toFixed(4)}
                     </p>
                   )}
 
                   {/* Map Picker — rendered as separate component so useEffect([]) fires on mount */}
                   {showMapPicker && (
-                    <div className="rounded-xl border border-blue-200 shadow-sm" style={{ overflow: "hidden" }}>
-                      <div className="bg-blue-50 px-3 py-1.5 text-[11px] text-blue-600 font-medium border-b border-blue-100">
-                        🗺️ Map par tap karein apni location select karne ke liye
+                    <div className="rounded-xl border border-blue-500/30 shadow-xs" style={{ overflow: "hidden" }}>
+                      <div className="bg-blue-500/10 px-3 py-1.5 text-[11px] text-blue-700 dark:text-blue-300 font-medium border-b border-blue-500/20">
+                        🗺️ Tap on map to pin your exact pickup spot
                       </div>
                       <MapPickerInner
                         initLat={latitude ?? 20.5937}

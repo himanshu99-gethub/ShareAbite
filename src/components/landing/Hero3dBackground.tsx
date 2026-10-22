@@ -32,8 +32,19 @@ export function Hero3dBackground() {
     if (!ctx) return;
 
     let animationFrameId: number;
+    let isVisible = true;
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
+
+    const observer = new IntersectionObserver(([entry]) => {
+      const prevVisible = isVisible;
+      isVisible = entry.isIntersecting;
+      if (isVisible && !prevVisible) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = requestAnimationFrame(render);
+      }
+    }, { threshold: 0.05 });
+    observer.observe(canvas);
 
     // DPR Scaling for crisp retina screens
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -353,13 +364,16 @@ export function Hero3dBackground() {
         ctx.fill();
       }
 
-      animationFrameId = requestAnimationFrame(render);
+      if (isVisible) {
+        animationFrameId = requestAnimationFrame(render);
+      }
     };
 
     render();
 
     return () => {
       cancelAnimationFrame(animationFrameId);
+      observer.disconnect();
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("resize", setSize);

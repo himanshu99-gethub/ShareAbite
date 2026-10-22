@@ -208,7 +208,7 @@ export function AllReviewsModal({
                   <img
                     src={r.avatar}
                     alt={r.name}
-                    className="w-9 h-9 rounded-full object-cover border border-white shadow-sm"
+                    className="w-9 h-9 rounded-full object-cover border border-border/60 shadow-xs"
                   />
                   <div>
                     <p className="text-xs font-bold text-foreground">{r.name}</p>

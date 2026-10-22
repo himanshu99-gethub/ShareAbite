@@ -52,14 +52,7 @@ export async function getStableUserId(emailInput: string): Promise<string> {
   try {
     const admin = await getSupabaseAdmin();
     if (admin) {
-      // 1. Search Supabase Auth users
-      const { data } = await admin.auth.admin.listUsers();
-      const existingUser = data?.users?.find((u) => u.email?.toLowerCase() === email);
-      if (existingUser?.id) {
-        return existingUser.id;
-      }
-
-      // 2. Search profiles database table by email
+      // 1. Search indexed profiles database table by email (fastest, ~5ms)
       const { data: profile } = await admin
         .from("profiles")
         .select("id")
@@ -68,6 +61,13 @@ export async function getStableUserId(emailInput: string): Promise<string> {
 
       if (profile?.id) {
         return profile.id;
+      }
+
+      // 2. Fallback: Search Supabase Auth users
+      const { data } = await admin.auth.admin.listUsers();
+      const existingUser = data?.users?.find((u) => u.email?.toLowerCase() === email);
+      if (existingUser?.id) {
+        return existingUser.id;
       }
     }
   } catch (e) {}
@@ -109,18 +109,7 @@ export async function isUserRegistered(emailInput: string): Promise<boolean> {
   try {
     const admin = await getSupabaseAdmin();
     if (admin) {
-      try {
-        const { data } = await admin.auth.admin.listUsers();
-        const existingUser = data?.users?.find((u) => u.email?.toLowerCase() === email);
-        if (existingUser) {
-          registeredUsersStore.add(email);
-          if (existingUser.user_metadata?.full_name) {
-            userFullNameStore.set(email, existingUser.user_metadata.full_name);
-          }
-          return true;
-        }
-      } catch (_) {}
-      
+      // 1. Check indexed profiles table first (~5ms)
       try {
         const { data: profile } = await admin
           .from("profiles")
@@ -132,6 +121,19 @@ export async function isUserRegistered(emailInput: string): Promise<boolean> {
           registeredUsersStore.add(email);
           if ((profile as any).full_name) {
             userFullNameStore.set(email, (profile as any).full_name);
+          }
+          return true;
+        }
+      } catch (_) {}
+
+      // 2. Fallback: Search Supabase Auth users
+      try {
+        const { data } = await admin.auth.admin.listUsers();
+        const existingUser = data?.users?.find((u) => u.email?.toLowerCase() === email);
+        if (existingUser) {
+          registeredUsersStore.add(email);
+          if (existingUser.user_metadata?.full_name) {
+            userFullNameStore.set(email, existingUser.user_metadata.full_name);
           }
           return true;
         }

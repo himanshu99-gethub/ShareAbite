@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "@tanstack/react-router";
 import { MapPin, List, Clock, Loader2, Search, Package, History, UserCog, CheckCircle2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { useDonations } from "@/hooks/use-donations";
@@ -168,13 +169,13 @@ export function ReceiverDashboard({ receiverId, receiverName }: ReceiverDashboar
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-muted/50 rounded-xl p-1 mb-6 w-fit">
+      <div className="flex gap-1 bg-muted/60 rounded-xl p-1 mb-6 w-fit overflow-x-auto">
         <button
           onClick={() => setActiveTab("browse")}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === "browse"
-              ? "bg-white text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
+              ? "bg-card text-foreground shadow-xs border border-border/50 font-bold"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
           }`}
         >
           <Search className="w-4 h-4" />
@@ -182,10 +183,10 @@ export function ReceiverDashboard({ receiverId, receiverName }: ReceiverDashboar
         </button>
         <button
           onClick={() => setActiveTab("requests")}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === "requests"
-              ? "bg-white text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
+              ? "bg-card text-foreground shadow-xs border border-border/50 font-bold"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
           }`}
         >
           <Clock className="w-4 h-4" />
@@ -198,10 +199,10 @@ export function ReceiverDashboard({ receiverId, receiverName }: ReceiverDashboar
         </button>
         <button
           onClick={() => setActiveTab("history")}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === "history"
-              ? "bg-white text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
+              ? "bg-card text-foreground shadow-xs border border-border/50 font-bold"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
           }`}
         >
           <History className="w-4 h-4" />
@@ -209,10 +210,10 @@ export function ReceiverDashboard({ receiverId, receiverName }: ReceiverDashboar
         </button>
         <button
           onClick={() => setActiveTab("profile")}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === "profile"
-              ? "bg-white text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
+              ? "bg-card text-foreground shadow-xs border border-border/50 font-bold"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
           }`}
         >
           <UserCog className="w-4 h-4" />
@@ -233,11 +234,11 @@ export function ReceiverDashboard({ receiverId, receiverName }: ReceiverDashboar
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all"
               />
             </div>
-            <div className="flex gap-1 bg-muted/50 rounded-xl p-1 flex-shrink-0">
+            <div className="flex gap-1 bg-muted/60 rounded-xl p-1 flex-shrink-0">
               <button
                 onClick={() => setViewMode("map")}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-                  viewMode === "map" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  viewMode === "map" ? "bg-card text-foreground shadow-xs border border-border/50 font-semibold" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 }`}
               >
                 <MapPin className="w-4 h-4" /> Map
@@ -245,7 +246,7 @@ export function ReceiverDashboard({ receiverId, receiverName }: ReceiverDashboar
               <button
                 onClick={() => setViewMode("list")}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-                  viewMode === "list" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  viewMode === "list" ? "bg-card text-foreground shadow-xs border border-border/50 font-semibold" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 }`}
               >
                 <List className="w-4 h-4" /> List
@@ -434,7 +435,7 @@ export function ReceiverDashboard({ receiverId, receiverName }: ReceiverDashboar
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl border border-border/60 overflow-hidden mt-4">
+              <div className="bg-card rounded-2xl border border-border/60 overflow-hidden shadow-xs mt-4">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm text-left">
                     <thead className="bg-muted/50 text-muted-foreground text-xs uppercase font-semibold">
@@ -447,7 +448,7 @@ export function ReceiverDashboard({ receiverId, receiverName }: ReceiverDashboar
                     <tbody className="divide-y divide-border/50">
                       {historyPickups.map((d) => (
                         <tr key={d.id} className="hover:bg-muted/20 transition-colors">
-                          <td className="px-5 py-4 whitespace-nowrap text-muted-foreground">
+                          <td className="px-5 py-4 whitespace-nowrap text-muted-foreground font-mono text-xs">
                             {new Date(d.created_at).toLocaleDateString()}
                           </td>
                           <td className="px-5 py-4">
@@ -471,23 +472,33 @@ export function ReceiverDashboard({ receiverId, receiverName }: ReceiverDashboar
 
       {activeTab === "profile" && (
         <div className="max-w-xl">
-          <div className="bg-white rounded-2xl shadow-sm border border-border/50 p-8">
+          <div className="bg-card rounded-2xl shadow-xs border border-border/60 p-8">
             <div className="flex items-center gap-4 mb-8">
-              <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-full bg-accent/15 flex items-center justify-center border border-accent/25">
                 <UserCog className="w-8 h-8 text-accent" />
               </div>
               <div>
                 <h2 className="text-xl font-bold text-foreground">{receiverName ?? "Receiver"}</h2>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-accent/10 text-accent text-xs font-semibold mt-1">
-                  NGO / Shelter
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-accent/10 text-accent text-xs font-semibold mt-1 border border-accent/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+                  NGO / Shelter Verified
                 </span>
               </div>
             </div>
             
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-sm font-semibold text-foreground mb-1">Account Info</h3>
-                <p className="text-sm text-muted-foreground">To update your details, please contact support or check back later for the edit profile feature.</p>
+            <div className="space-y-4">
+              <div className="p-5 rounded-2xl bg-muted/40 border border-border/50 shadow-xs">
+                <h3 className="text-sm font-bold text-foreground mb-1">Account & Shelter Details</h3>
+                <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
+                  Manage your organization name, shelter phone numbers, and emergency contact details directly in settings.
+                </p>
+                <Link
+                  to="/settings"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-all shadow-xs active:scale-[0.98]"
+                >
+                  <UserCog className="w-4 h-4" />
+                  Edit Organization Settings
+                </Link>
               </div>
             </div>
           </div>
