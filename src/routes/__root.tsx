@@ -56,6 +56,20 @@ function RootShell({ children }: { children: React.ReactNode }) {
     <html lang="en" className="overflow-x-hidden">
       <head>
         <HeadContent />
+        <script
+          defer
+          src="https://www.boosthis.com/kit.js"
+          data-key="bksend_429a4e9df9f72936137804784bfee35f2f816e81c0ba20fc7e82a1372f8d7df2"
+          data-install="1f5d7784-efce-4d68-88d4-a2312ad048bb"
+          data-project="shareAbte"
+          onError={(event) =>
+            console.error(
+              "[boosthis] Boosthis did not load: " +
+                event.currentTarget.src +
+                " never arrived, so nothing is measuring. Check the address, the network, and any Content-Security-Policy.",
+            )
+          }
+        />
       </head>
       <body className="pb-[env(safe-area-inset-bottom)] overflow-x-hidden min-h-screen">
         {children}
